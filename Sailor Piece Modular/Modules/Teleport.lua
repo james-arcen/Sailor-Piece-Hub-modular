@@ -5,6 +5,7 @@ local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local GameData = Import("Modules/GameData")
 
 local LP = Players.LocalPlayer
 local UI = Import("Ui/UI") 
@@ -14,31 +15,11 @@ local Module = {
 }
 
 function Module:Init()
-    self.IslandsDisplay = {
-        "Starter", "Jungle", "Desert", "Snow", "Sailor", "Shibuya Station", 
-        "Hueco Mundo", "Boss Island", "Dungeon", "Shinjuku", "Slime", 
-        "Academy", "Judgement", "Soul Society"
-    }
-    
-    self.TeleportMap = {
-        ["Starter"] = "Starter", ["Jungle"] = "Jungle", ["Desert"] = "Desert",
-        ["Snow"] = "Snow", ["Sailor"] = "Sailor", ["Shibuya Station"] = "Shibuya",
-        ["Hueco Mundo"] = "HuecoMundo", ["Boss Island"] = "Boss", ["Dungeon"] = "Dungeon",
-        ["Shinjuku"] = "Shinjuku", ["Slime"] = "Slime", ["Academy"] = "Academy",
-        ["Judgement"] = "Judgement", ["Soul Society"] = "SoulSociety"
-    }
-
-    self.NpcList = {
-        "GroupRewardNPC", "BossRushShopNPC", "BossRushPortalNPC", "DungeonMerchantNPC", 
-        "EnchantNPC", "YujiBuyerNPC", "BlessingNPC", "SlimeCraftNPC", 
-        "RimuruMasteryNPC", "SkillTreeNPC", "Katana", "MadokaBuyer", 
-        "HakiQuestNPC", "SummonBossNPC"
-    }
-
-    -- Variáveis para guardar o que o usuário escolheu no Dropdown
+    self.IslandsDisplay = GameData.IslandsInOrder
+    self.TeleportMap = GameData.TeleportMap
+    self.NpcList = GameData.NpcList
     self.SelectedIsland = self.IslandsDisplay[1]
     self.SelectedNpc = self.NpcList[1]
-
     self.TeleportRemote = ReplicatedStorage:FindFirstChild("TeleportToPortal", true)
 end
 
