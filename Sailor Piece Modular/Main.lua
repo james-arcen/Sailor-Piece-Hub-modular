@@ -38,7 +38,7 @@ end
 
 local AutoQuestModule = Import("Modules/AutoQuest")
 Core:RegisterModule("Auto Quest (Unitária)", "Missões", AutoQuestModule)
-local TeleportModule = Import("Modules/Teleport")
+local TeleportModule = Import("Services/Teleport")
 Core:RegisterModule("Mundo & Teleporte", "Mundo & Teleporte", TeleportModule)
 local AutoFarmModule = Import("Modules/AutoFarm")
 Core:RegisterModule("Auto Farm (Qualquer Mob)", "Farm & Nível", AutoFarmModule)
