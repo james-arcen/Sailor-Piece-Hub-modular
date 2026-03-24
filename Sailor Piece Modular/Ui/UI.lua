@@ -1,8 +1,9 @@
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService") -- Necessário para o Draggable
 local LP = Players.LocalPlayer
 
-local UI = { Tabs = {}, ActiveTab = nil }
+local UI = { Tabs = {}, ActiveTab = nil, OnClose = nil }
 
 function UI:Init(HubConfig)
     local uiName = "SailorPieceHubPro_UI"
@@ -18,9 +19,11 @@ function UI:Init(HubConfig)
     self.MainFrame.Position = UDim2.new(0.5, -275, 0.5, -190)
     self.MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
     self.MainFrame.BorderSizePixel = 0
+    self.MainFrame.ClipsDescendants = true -- Importante para o Minimizar funcionar bonito
     self.MainFrame.Parent = self.ScreenGui
     Instance.new("UICorner", self.MainFrame).CornerRadius = UDim.new(0, 8)
 
+    -- TOPBAR (Área arrastável)
     local topBar = Instance.new("Frame")
     topBar.Size = UDim2.new(1, 0, 0, 40)
     topBar.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
@@ -28,8 +31,8 @@ function UI:Init(HubConfig)
     Instance.new("UICorner", topBar).CornerRadius = UDim.new(0, 8)
     
     local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, -20, 1, 0)
-    title.Position = UDim2.new(0, 10, 0, 0)
+    title.Size = UDim2.new(1, -100, 1, 0)
+    title.Position = UDim2.new(0, 15, 0, 0)
     title.BackgroundTransparency = 1
     title.Text = HubConfig.HubName .. " v" .. HubConfig.Version
     title.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -38,6 +41,77 @@ function UI:Init(HubConfig)
     title.TextXAlignment = Enum.TextXAlignment.Left
     title.Parent = topBar
 
+    -- BOTÃO MINIMIZAR (-)
+    local minBtn = Instance.new("TextButton")
+    minBtn.Size = UDim2.new(0, 30, 0, 30)
+    minBtn.Position = UDim2.new(1, -70, 0, 5)
+    minBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    minBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    minBtn.Text = "-"
+    minBtn.Font = Enum.Font.GothamBold
+    minBtn.TextSize = 18
+    minBtn.Parent = topBar
+    Instance.new("UICorner", minBtn).CornerRadius = UDim.new(0, 4)
+
+    -- BOTÃO FECHAR (X)
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size = UDim2.new(0, 30, 0, 30)
+    closeBtn.Position = UDim2.new(1, -35, 0, 5)
+    closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeBtn.Text = "X"
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.TextSize = 14
+    closeBtn.Parent = topBar
+    Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 4)
+
+    -- LÓGICA DE MINIMIZAR
+    local isMinimized = false
+    minBtn.MouseButton1Click:Connect(function()
+        isMinimized = not isMinimized
+        if isMinimized then
+            self.MainFrame.Size = UDim2.new(0, 550, 0, 40) -- Encolhe pro tamanho do TopBar
+        else
+            self.MainFrame.Size = UDim2.new(0, 550, 0, 380) -- Volta ao tamanho normal
+        end
+    end)
+
+    -- LÓGICA DE FECHAR
+    closeBtn.MouseButton1Click:Connect(function()
+        if self.OnClose then
+            self.OnClose() -- Chama a função que desliga os scripts
+        end
+        self.ScreenGui:Destroy()
+    end)
+
+    -- LÓGICA DE DRAG (ARRASTAR)
+    local dragging, dragInput, dragStart, startPos
+    topBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = self.MainFrame.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    topBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            self.MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    -- CONTEÚDO (Sidebar e Content)
     self.Sidebar = Instance.new("ScrollingFrame")
     self.Sidebar.Size = UDim2.new(0, 130, 1, -50)
     self.Sidebar.Position = UDim2.new(0, 10, 0, 45)
