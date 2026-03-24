@@ -6,8 +6,8 @@ local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LP = Players.LocalPlayer
 local UI = Import("Ui/UI")
-local TeleportService = Import("Modules/Teleport")
-local GameData = Import("Modules/GameData")
+local TeleportService = Import("Services/Teleport")
+local GameData = Import("Config/GameData")
 
 local Module = {
     NoToggle = true 
