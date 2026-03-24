@@ -8,6 +8,7 @@ local LP = Players.LocalPlayer
 local UI = Import("Ui/UI")
 local TeleportService = Import("Services/Teleport")
 local GameData = Import("Config/GameData")
+local CombatService = Import("Services/CombatService")
 
 local Module = {
     NoToggle = true 
@@ -253,82 +254,59 @@ end
 -- ========================================================================
 function Module:StartFarm()
     self.IsRunning = true
+    
+    -- Acorda o músculo!
+    CombatService:Start() 
 
-    self.MoveLoop = task.spawn(function()
+    self.BrainLoop = task.spawn(function()
         while self.IsRunning and task.wait() do
             local char = LP.Character
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
-            local hum = char and char:FindFirstChild("Humanoid")
-            if not hrp or not hum or not self.SelectedQuest then continue end
+            if not hrp or not self.SelectedQuest then continue end
 
             local qTarget = self.SelectedQuest.Target
             local qNPC = self.SelectedQuest.NPC
             local qIsland = self.SelectedQuest.Island
             local qType = self.SelectedQuest.Type
 
-            -- 🛑 O CÉREBRO DE GPS QUE VOCÊ SUGERIU 🛑
+            -- GPS de Ilha
             if self:NeedsTeleport(hrp, qIsland) then
+                CombatService:SetTarget(nil, false) -- Pede pro Músculo parar de bater
                 print("🗺️ Localização divergente! Teleportando para: " .. qIsland)
                 TeleportService:TeleportToIsland(qIsland)
-                task.wait(4) -- Dá tempo para a tela de carregamento do teleporte sumir
+                task.wait(4)
                 continue
             end
 
             local serviceFolder = Workspace:FindFirstChild("ServiceNPCs")
             local npc = serviceFolder and serviceFolder:FindFirstChild(qNPC)
 
-            -- Âncoras (Não tem missão de combate)
+            -- Âncoras (Não tem combate)
             if qTarget == "Nenhum" then
-                self.FarmTarget = nil
-                if npc and npc:FindFirstChild("HumanoidRootPart") then
-                    TeleportService:FlyToNPC(qNPC)
-                end
+                CombatService:SetTarget(nil, false)
+                if npc and npc:FindFirstChild("HumanoidRootPart") then TeleportService:FlyToNPC(qNPC) end
                 continue
             end
 
-            -- Pegar a Quest de Combate
+            -- Lógica de pegar a Missão
             if not self:IsQuestActive(qTarget) then
-                self.FarmTarget = nil 
+                CombatService:SetTarget(nil, false) -- Pausa os ataques
                 if npc and npc:FindFirstChild("HumanoidRootPart") then
                     TeleportService:FlyToNPC(qNPC)
                     task.wait(0.2)
                     local prompt = npc:FindFirstChildWhichIsA("ProximityPrompt", true)
-                    if prompt and fireproximityprompt then 
-                        fireproximityprompt(prompt)
-                        task.wait(1.5) 
-                    end
+                    if prompt and fireproximityprompt then fireproximityprompt(prompt); task.wait(1.5) end
                 end
             else
-                -- Missão ativa! Procura o mob
+                -- Lógica de Combate: Missão ativa! Procura o mob
                 if not self.FarmTarget or not self.FarmTarget:FindFirstChild("Humanoid") or self.FarmTarget.Humanoid.Health <= 0 then
                     self.FarmTarget = self:GetClosestMob(qTarget, qType)
                 end
                 
+                -- Se achou o alvo, MANDA O MÚSCULO TRABALHAR! (true = usar Voo Orbital)
                 if self.FarmTarget then
-                    local targetHrp = self.FarmTarget:FindFirstChild("HumanoidRootPart")
-                    if targetHrp then
-                        hum.PlatformStand = true
-                        hrp.Velocity = Vector3.zero
-                        
-                        -- Voo Orbital em volta do alvo
-                        self.OrbitAngle = self.OrbitAngle + math.rad(15)
-                        local radius = 8
-                        local height = 5
-                        local pos = targetHrp.Position + Vector3.new(math.cos(self.OrbitAngle) * radius, height, math.sin(self.OrbitAngle) * radius)
-                        
-                        hrp.CFrame = CFrame.new(pos, targetHrp.Position)
-                    end
+                    CombatService:SetTarget(self.FarmTarget, true)
                 end
-            end
-        end
-    end)
-
-    self.AttackLoop = task.spawn(function()
-        while self.IsRunning and task.wait(0.1) do
-            if self.FarmTarget and self.FarmTarget:FindFirstChild("Humanoid") and self.FarmTarget.Humanoid.Health > 0 then
-                self:EquipWeapon()
-                if self.CombatRemote then pcall(function() self.CombatRemote:FireServer() end) end
-                if self.AbilityRemote then for i = 1, 4 do pcall(function() self.AbilityRemote:FireServer(i) end) end end
             end
         end
     end)
@@ -336,12 +314,10 @@ end
 
 function Module:StopFarm()
     self.IsRunning = false
-    if self.MoveLoop then task.cancel(self.MoveLoop); self.MoveLoop = nil end
-    if self.AttackLoop then task.cancel(self.AttackLoop); self.AttackLoop = nil end
+    if self.BrainLoop then task.cancel(self.BrainLoop); self.BrainLoop = nil end
     
-    local char = LP.Character
-    local hum = char and char:FindFirstChild("Humanoid")
-    if hum then hum.PlatformStand = false end
+    -- Manda o Músculo descansar
+    CombatService:Stop()
     self.FarmTarget = nil
 end
 
