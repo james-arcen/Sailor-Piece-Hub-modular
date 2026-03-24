@@ -233,6 +233,84 @@ function UI:CreateSection(tabName, text)
     sectionLbl.Parent = container
 end
 
+-- Cria um Dropdown (Lista suspensa / ComboBox)
+function UI:CreateDropdown(tabName, defaultText, options, callback)
+    local container = self.Tabs[tabName].Container
+    
+    -- O frame principal que vai crescer quando abrir
+    local dropdownFrame = Instance.new("Frame")
+    dropdownFrame.Size = UDim2.new(1, -10, 0, 35)
+    dropdownFrame.BackgroundTransparency = 1
+    dropdownFrame.ClipsDescendants = true -- Esconde a lista quando estiver fechado
+    dropdownFrame.Parent = container
+
+    -- O Botão que o usuário clica
+    local mainBtn = Instance.new("TextButton")
+    mainBtn.Size = UDim2.new(1, 0, 0, 35)
+    mainBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+    mainBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    mainBtn.Font = Enum.Font.GothamBold
+    mainBtn.TextSize = 13
+    mainBtn.Text = defaultText .. " ▼"
+    mainBtn.Parent = dropdownFrame
+    Instance.new("UICorner", mainBtn).CornerRadius = UDim.new(0, 4)
+
+    -- A lista com a barra de rolagem (invisível por padrão)
+    local optionsContainer = Instance.new("ScrollingFrame")
+    optionsContainer.Size = UDim2.new(1, 0, 1, -40)
+    optionsContainer.Position = UDim2.new(0, 0, 0, 40)
+    optionsContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    optionsContainer.ScrollBarThickness = 2
+    optionsContainer.Parent = dropdownFrame
+    Instance.new("UICorner", optionsContainer).CornerRadius = UDim.new(0, 4)
+
+    local listLayout = Instance.new("UIListLayout")
+    listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    listLayout.Padding = UDim.new(0, 2)
+    listLayout.Parent = optionsContainer
+
+    local isOpen = false
+    local expandedHeight = 130 -- Altura máxima que a lista vai abrir
+
+    -- Lógica de abrir/fechar a lista
+    mainBtn.MouseButton1Click:Connect(function()
+        isOpen = not isOpen
+        mainBtn.Text = defaultText .. (isOpen and " ▲" or " ▼")
+        if isOpen then
+            dropdownFrame.Size = UDim2.new(1, -10, 0, expandedHeight)
+        else
+            dropdownFrame.Size = UDim2.new(1, -10, 0, 35)
+        end
+    end)
+
+    -- Cria os botões dentro da lista para cada opção
+    for _, option in ipairs(options) do
+        local optBtn = Instance.new("TextButton")
+        optBtn.Size = UDim2.new(1, -5, 0, 25)
+        optBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+        optBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+        optBtn.Font = Enum.Font.GothamSemibold
+        optBtn.TextSize = 12
+        optBtn.Text = option
+        optBtn.Parent = optionsContainer
+        Instance.new("UICorner", optBtn).CornerRadius = UDim.new(0, 4)
+
+        -- Quando o usuário clica em uma opção da lista
+        optBtn.MouseButton1Click:Connect(function()
+            isOpen = false
+            defaultText = "📍 " .. option -- Atualiza o texto do botão principal
+            mainBtn.Text = defaultText .. " ▼"
+            dropdownFrame.Size = UDim2.new(1, -10, 0, 35) -- Fecha o dropdown
+            if callback then callback(option) end
+        end)
+    end
+    
+    -- Ajusta o limite do scroll automaticamente
+    listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        optionsContainer.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y)
+    end)
+end
+
 function UI:Start()
     self:CreateTab("Farm & Nível")
     self:CreateTab("Missões")
