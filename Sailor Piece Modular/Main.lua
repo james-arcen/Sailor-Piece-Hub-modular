@@ -27,6 +27,8 @@ local Core = { Modules = {} }
 
 -- 1. Injeta a UI
 Core.UI = Import("Ui/UI")
+local CombatService = Import("Services/CombatService")
+CombatService:Init()
 
 -- 2. Sistema de Registro
 function Core:RegisterModule(name, category, moduleTable)
