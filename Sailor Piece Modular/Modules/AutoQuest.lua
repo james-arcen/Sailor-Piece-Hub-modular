@@ -5,9 +5,9 @@ local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LP = Players.LocalPlayer
-
 local UI = Import("Ui/UI")
 local TeleportService = Import("Modules/Teleport")
+local GameData = Import("Modules/GameData")
 
 local Module = {
     NoToggle = true 
@@ -20,43 +20,9 @@ function Module:Init()
     self.FarmTarget = nil
     self.OrbitAngle = 0
 
-    self.QuestDataMap = {
-        ["Starter"] = {{Name = "Quest 1: Mobs (Thief)", NPC = "QuestNPC1", Target = "Thief", Type = "Mob"}, {Name = "Quest 2: Boss (Thief Boss)", NPC = "QuestNPC2", Target = "ThiefBoss", Type = "Boss"}},
-        ["Jungle"] = {{Name = "Quest 3: Mobs (Monkey)", NPC = "QuestNPC3", Target = "Monkey", Type = "Mob"}, {Name = "Quest 4: Boss (Monkey Boss)", NPC = "QuestNPC4", Target = "MonkeyBoss", Type = "Boss"}},
-        ["Desert"] = {{Name = "Quest 5: Mobs (Bandits)", NPC = "QuestNPC5", Target = "DesertBandit", Type = "Mob"}, {Name = "Quest 6: Boss (Desert Boss)", NPC = "QuestNPC6", Target = "DesertBoss", Type = "Boss"}},
-        ["Snow"] = {{Name = "Quest 7: Mobs (Frost Rogue)", NPC = "QuestNPC7", Target = "FrostRogue", Type = "Mob"}, {Name = "Quest 8: Boss (Snow Boss)", NPC = "QuestNPC8", Target = "SnowBoss", Type = "Boss"}},
-        ["Sailor"] = {{Name = "Âncora Sailor", NPC = "JinwooMovesetNPC", Target = "Nenhum", Type = "Mob"}},
-        ["Shibuya Station"] = {{Name = "Quest 9: Mobs (Sorcerer)", NPC = "QuestNPC9", Target = "Sorcerer", Type = "Mob"}, {Name = "Quest 10: Mobs (Panda Sorcerer)", NPC = "QuestNPC10", Target = "PandaMiniBoss", Type = "Boss"}},
-        ["Hueco Mundo"] = {{Name = "Quest 11: Mobs (Hollow)", NPC = "QuestNPC11", Target = "Hollow", Type = "Mob"}},
-        ["Shinjuku"] = {{Name = "Quest 12: Mobs", NPC = "QuestNPC12", Target = "StrongSorcerer", Type = "Mob"}, {Name = "Quest 13: Mobs", NPC = "QuestNPC13", Target = "Curse", Type = "Mob"}},
-        ["Slime"] = {{Name = "Quest 14: Mobs (Slime)", NPC = "QuestNPC14", Target = "Slime", Type = "Mob"}},
-        ["Academy"] = {{Name = "Quest 15: Mobs (Teacher)", NPC = "QuestNPC15", Target = "AcademyTeacher", Type = "Mob"}},
-        ["Judgement"] = {{Name = "Quest 16: Mobs", NPC = "QuestNPC16", Target = "Swordsman", Type = "Mob"}},
-        ["Soul Society"] = {{Name = "Quest 17: Mobs", NPC = "QuestNPC17", Target = "Quincy", Type = "Mob"}},
-        ["Boss Island"] = {{Name = "Âncora de Ilha", NPC = "SummonBossNPC", Target = "Nenhum", Type = "Mob"}}
-    }
-
-    -- 📍 MAPEAMENTO INTELIGENTE: Liga cada NPC de volta à sua Ilha
-    self.NpcToIsland = {
-        ["QuestNPC1"] = "Starter", ["QuestNPC2"] = "Starter",
-        ["QuestNPC3"] = "Jungle", ["QuestNPC4"] = "Jungle",
-        ["QuestNPC5"] = "Desert", ["QuestNPC6"] = "Desert",
-        ["QuestNPC7"] = "Snow", ["QuestNPC8"] = "Snow",
-        ["JinwooMovesetNPC"] = "Sailor",
-        ["QuestNPC9"] = "Shibuya Station", ["QuestNPC10"] = "Shibuya Station",
-        ["QuestNPC11"] = "Hueco Mundo",
-        ["QuestNPC12"] = "Shinjuku", ["QuestNPC13"] = "Shinjuku",
-        ["QuestNPC14"] = "Slime",
-        ["QuestNPC15"] = "Academy",
-        ["QuestNPC16"] = "Judgement",
-        ["QuestNPC17"] = "Soul Society",
-        ["SummonBossNPC"] = "Boss Island"
-    }
-
-    self.IslandsInOrder = {
-        "Starter", "Jungle", "Desert", "Snow", "Sailor", "Shibuya Station",
-        "Hueco Mundo", "Boss Island", "Shinjuku", "Slime", "Academy", "Judgement", "Soul Society"
-    }
+    self.QuestDataMap = GameData.QuestDataMap
+    self.NpcToIsland = GameData.NpcToIsland
+    self.IslandsInOrder = GameData.IslandsInOrder
 
     self.SelectedIsland = self.IslandsInOrder[1]
     self.SelectedQuest = self.QuestDataMap[self.SelectedIsland][1]
