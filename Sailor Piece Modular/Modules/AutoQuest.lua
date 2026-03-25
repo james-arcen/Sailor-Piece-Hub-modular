@@ -9,6 +9,7 @@ local UI = Import("Ui/UI")
 local TeleportService = Import("Services/Teleport")
 local GameData = Import("Config/GameData")
 local CombatService = Import("Services/CombatService")
+local SpawnService = Import("Services/SpawnService")
 
 local Module = {
     NoToggle = true 
@@ -273,10 +274,17 @@ function Module:StartFarm()
 
             -- GPS de Ilha
             if self:NeedsTeleport(hrp, qIsland) then
-                CombatService:SetTarget(nil, false) -- Pede pro Músculo parar de bater
+                CombatService:SetTarget(nil, false)
                 print("🗺️ Localização divergente! Teleportando para: " .. qIsland)
                 TeleportService:TeleportToIsland(qIsland)
                 task.wait(4)
+                continue
+            end
+
+            if not SpawnService.SpawnSetado then
+                CombatService:SetTarget(nil, false)
+                SpawnService:SetSpawn()
+                task.wait(1)
                 continue
             end
 
