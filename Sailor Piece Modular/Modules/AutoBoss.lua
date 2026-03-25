@@ -110,7 +110,7 @@ function Module:StopFarm()
     if self.BrainLoop then task.cancel(self.BrainLoop); self.BrainLoop = nil end
     CombatService:Stop()
     self.BossTarget = nil
-    PriorityService:Request("AutoBoss")
+    PriorityService:Release("AutoBoss")
 end
 
 function Module:Toggle(state)
