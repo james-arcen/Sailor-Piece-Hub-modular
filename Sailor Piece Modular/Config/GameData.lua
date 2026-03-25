@@ -6,24 +6,43 @@ local GameData = {}
 -- 1. Lista de Ilhas na ordem que devem aparecer na UI
 GameData.IslandsInOrder = {
     "Starter", "Jungle", "Desert", "Snow", "Sailor", "Shibuya Station",
-    "Hueco Mundo", "Boss Island", "Shinjuku", "Slime", "Academy", "Judgement", "Soul Society"
+    "Hueco Mundo", "Boss Island", "Shinjuku", "Slime", "Academy", "Judgement", "Soul Dominion"
 }
 
 -- 2. Tradutor de Teleporte (Nome da UI -> Nome do Jogo)
 GameData.TeleportMap = {
-    ["Starter"] = "Starter", ["Jungle"] = "Jungle", ["Desert"] = "Desert",
-    ["Snow"] = "Snow", ["Sailor"] = "Sailor", ["Shibuya Station"] = "Shibuya",
-    ["Hueco Mundo"] = "HuecoMundo", ["Boss Island"] = "Boss", ["Dungeon"] = "Dungeon",
-    ["Shinjuku"] = "Shinjuku", ["Slime"] = "Slime", ["Academy"] = "Academy",
-    ["Judgement"] = "Judgement", ["Soul Society"] = "SoulSociety"
+    ["Starter"] = "Starter", 
+    ["Jungle"] = "Jungle", 
+    ["Desert"] = "Desert",
+    ["Snow"] = "Snow", 
+    ["Sailor"] = "Sailor", 
+    ["Shibuya Station"] = "Shibuya",
+    ["Hueco Mundo"] = "HuecoMundo", 
+    ["Boss Island"] = "Boss", 
+    ["Dungeon"] = "Dungeon",
+    ["Shinjuku"] = "Shinjuku", 
+    ["Slime"] = "Slime", 
+    ["Academy"] = "Academy",
+    ["Judgement"] = "Judgement", 
+    ["Soul Dominion"] = "SoulDominion"
 }
 
 -- 3. Lista de NPCs de Serviços Gerais
 GameData.NpcList = {
-    "GroupRewardNPC", "BossRushShopNPC", "BossRushPortalNPC", "DungeonMerchantNPC", 
-    "EnchantNPC", "YujiBuyerNPC", "BlessingNPC", "SlimeCraftNPC", 
-    "RimuruMasteryNPC", "SkillTreeNPC", "Katana", "MadokaBuyer", 
-    "HakiQuestNPC", "SummonBossNPC"
+    "GroupRewardNPC", 
+    "BossRushShopNPC", 
+    "BossRushPortalNPC", 
+    "DungeonMerchantNPC", 
+    "EnchantNPC", 
+    "YujiBuyerNPC", 
+    "BlessingNPC", 
+    "SlimeCraftNPC", 
+    "RimuruMasteryNPC", 
+    "SkillTreeNPC", 
+    "Katana", 
+    "MadokaBuyer", 
+    "HakiQuestNPC", 
+    "SummonBossNPC"
 }
 
 -- 4. Banco de Dados de Missões por Ilha
@@ -39,7 +58,7 @@ GameData.QuestDataMap = {
     ["Slime"] = {{Name = "Quest 14: Mobs (Slime)", NPC = "QuestNPC14", Target = "Slime", Type = "Mob"}},
     ["Academy"] = {{Name = "Quest 15: Mobs (Teacher)", NPC = "QuestNPC15", Target = "AcademyTeacher", Type = "Mob"}},
     ["Judgement"] = {{Name = "Quest 16: Mobs", NPC = "QuestNPC16", Target = "Swordsman", Type = "Mob"}},
-    ["Soul Society"] = {{Name = "Quest 17: Mobs", NPC = "QuestNPC17", Target = "Quincy", Type = "Mob"}},
+    ["Soul Dominion"] = {{Name = "Quest 17: Mobs", NPC = "QuestNPC17", Target = "Quincy", Type = "Mob"}},
     ["Boss Island"] = {{Name = "Âncora de Ilha", NPC = "SummonBossNPC", Target = "Nenhum", Type = "Mob"}}
 }
 
@@ -56,7 +75,7 @@ GameData.NpcToIsland = {
     ["QuestNPC14"] = "Slime",
     ["QuestNPC15"] = "Academy",
     ["QuestNPC16"] = "Judgement",
-    ["QuestNPC17"] = "Soul Society",
+    ["QuestNPC17"] = "Soul Dominion",
     ["SummonBossNPC"] = "Boss Island"
 }
 
@@ -70,7 +89,7 @@ GameData.QuestProgression = {
     { Island = "Hueco Mundo", Quest = "Quest 11: Mobs (Hollow)", MinLevel = 5000 }, { Island = "Shinjuku", Quest = "Quest 12: Mobs", MinLevel = 6250 },
     { Island = "Shinjuku", Quest = "Quest 13: Mobs", MinLevel = 7000 }, { Island = "Slime", Quest = "Quest 14: Mobs (Slime)", MinLevel = 8000 },
     { Island = "Academy", Quest = "Quest 15: Mobs (Teacher)", MinLevel = 10000 }, { Island = "Judgement", Quest = "Quest 16: Mobs", MinLevel = 10750 },
-    { Island = "Soul Society", Quest = "Quest 17: Mobs", MinLevel = 11500 }
+    { Island = "Soul Dominion", Quest = "Quest 17: Mobs", MinLevel = 11500 }
 }
 
 return GameData
