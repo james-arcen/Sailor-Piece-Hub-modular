@@ -5,8 +5,8 @@ local PriorityService = {
     -- 1. Definimos a hierarquia de quem é mais importante (Maior número = Maior prioridade)
     Priorities = {
         ["PitySystem"] = 100,   -- Prioridade Máxima
-        ["AutoBoss"] = 90,      -- Muito importante
-        ["AutoQuest"] = 75,     -- Importante
+        ["AutoBoss"] = 80,      -- Muito importante
+        ["AutoQuest"] = 50,     -- Importante
         ["AutoFarm"] = 10       -- Farm base (Só roda se os outros não precisarem)
     },
     
