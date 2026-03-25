@@ -186,6 +186,8 @@ end
 function Module:Start()
     local tabName = "Farm & Nível"
     UI:CreateSection(tabName, "Auto Farm Específico")
+    local WeaponService = Import("Services/WeaponService")
+    WeaponService:BuildUI(tabName)
 
     local container = UI.Tabs[tabName].Container
     local mobDropdown
