@@ -6,7 +6,7 @@ local GameData = {}
 -- 1. Lista de Ilhas na ordem que devem aparecer na UI
 GameData.IslandsInOrder = {
     "Starter", "Jungle", "Desert", "Snow", "Sailor", "Shibuya Station",
-    "Hueco Mundo", "Boss Island", "Shinjuku", "Slime", "Academy", "Judgement", "Soul Dominion"
+    "Hollow Ilha", "Boss Island", "Shinjuku", "Slime", "Academy", "Judgement", "Soul Dominion"
 }
 
 -- 2. Tradutor de Teleporte (Nome da UI -> Nome do Jogo)
@@ -17,7 +17,7 @@ GameData.TeleportMap = {
     ["Snow"] = "Snow", 
     ["Sailor"] = "Sailor", 
     ["Shibuya Station"] = "Shibuya",
-    ["Hueco Mundo"] = "HuecoMundo", 
+    ["Hollow Ilha"] = "HollowIsland", 
     ["Boss Island"] = "Boss", 
     ["Dungeon"] = "Dungeon",
     ["Shinjuku"] = "Shinjuku", 
@@ -53,7 +53,7 @@ GameData.QuestDataMap = {
     ["Snow"] = {{Name = "Quest 7: Mobs (Frost Rogue)", NPC = "QuestNPC7", Target = "FrostRogue", Type = "Mob"}, {Name = "Quest 8: Boss (Snow Boss)", NPC = "QuestNPC8", Target = "SnowBoss", Type = "Boss"}},
     ["Sailor"] = {{Name = "Âncora Sailor", NPC = "JinwooMovesetNPC", Target = "Nenhum", Type = "Mob"}},
     ["Shibuya Station"] = {{Name = "Quest 9: Mobs (Sorcerer)", NPC = "QuestNPC9", Target = "Sorcerer", Type = "Mob"}, {Name = "Quest 10: Mobs (Panda Sorcerer)", NPC = "QuestNPC10", Target = "PandaMiniBoss", Type = "Boss"}},
-    ["Hueco Mundo"] = {{Name = "Quest 11: Mobs (Hollow)", NPC = "QuestNPC11", Target = "Hollow", Type = "Mob"}},
+    ["Hollow Ilha"] = {{Name = "Quest 11: Mobs (Hollow)", NPC = "QuestNPC11", Target = "Hollow", Type = "Mob"}},
     ["Shinjuku"] = {{Name = "Quest 12: Mobs", NPC = "QuestNPC12", Target = "StrongSorcerer", Type = "Mob"}, {Name = "Quest 13: Mobs", NPC = "QuestNPC13", Target = "Curse", Type = "Mob"}},
     ["Slime"] = {{Name = "Quest 14: Mobs (Slime)", NPC = "QuestNPC14", Target = "Slime", Type = "Mob"}},
     ["Academy"] = {{Name = "Quest 15: Mobs (Teacher)", NPC = "QuestNPC15", Target = "AcademyTeacher", Type = "Mob"}},
@@ -86,7 +86,7 @@ GameData.QuestProgression = {
     { Island = "Desert", Quest = "Quest 5: Mobs (Bandits)", MinLevel = 750 }, { Island = "Desert", Quest = "Quest 6: Boss (Desert Boss)", MinLevel = 1000 },
     { Island = "Snow", Quest = "Quest 7: Mobs (Frost Rogue)", MinLevel = 1500 }, { Island = "Snow", Quest = "Quest 8: Boss (Snow Boss)", MinLevel = 2000 },
     { Island = "Shibuya Station", Quest = "Quest 9: Mobs (Sorcerer)", MinLevel = 3000 }, { Island = "Shibuya Station", Quest = "Quest 10: Mobs (Panda Sorcerer)", MinLevel = 4000 },
-    { Island = "Hueco Mundo", Quest = "Quest 11: Mobs (Hollow)", MinLevel = 5000 }, { Island = "Shinjuku", Quest = "Quest 12: Mobs", MinLevel = 6250 },
+    { Island = "Hollow Ilha", Quest = "Quest 11: Mobs (Hollow)", MinLevel = 5000 }, { Island = "Shinjuku", Quest = "Quest 12: Mobs", MinLevel = 6250 },
     { Island = "Shinjuku", Quest = "Quest 13: Mobs", MinLevel = 7000 }, { Island = "Slime", Quest = "Quest 14: Mobs (Slime)", MinLevel = 8000 },
     { Island = "Academy", Quest = "Quest 15: Mobs (Teacher)", MinLevel = 10000 }, { Island = "Judgement", Quest = "Quest 16: Mobs", MinLevel = 10750 },
     { Island = "Soul Dominion", Quest = "Quest 17: Mobs", MinLevel = 11500 }
