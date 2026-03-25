@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🛏️ SERVIÇO: GERENCIADOR DE SPAWN
+-- 🛏️ SERVIÇO: GERENCIADOR DE SPAWN (CRISTAIS)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -11,7 +11,7 @@ local SpawnService = {
     SpawnSetado = false
 }
 
--- Identifica o Spawn mais próximo do jogador
+-- 🔍 Busca cirúrgica pelo cristal de spawn mais próximo
 function SpawnService:GetClosestSpawn()
     local closest = nil
     local minDist = math.huge
@@ -19,66 +19,65 @@ function SpawnService:GetClosestSpawn()
     
     if not hrp then return nil end
 
-    -- NOTA: Precisamos confirmar como o jogo guarda os Spawns. 
-    -- Geralmente ficam numa pasta "Spawns", "ServiceNPCs" ou espalhados pelo Workspace.
-    -- Aqui estou assumindo que são NPCs ou Partes que tenham "Spawn" no nome.
-    local function searchFolder(folder)
-        if not folder then return end
-        for _, obj in ipairs(folder:GetChildren()) do
-            -- Procura por algo que indique ser um Spawn Point
-            if obj.Name:lower():find("spawn") or obj:GetAttribute("IsSpawn") then
-                local objPos = obj:IsA("Model") and obj:FindFirstChild("HumanoidRootPart") 
-                               or obj:IsA("BasePart") and obj
-                
-                if objPos then
-                    local dist = (hrp.Position - objPos.Position).Magnitude
-                    if dist < minDist then
-                        minDist = dist
-                        closest = obj
-                    end
+    -- Como o formato é Workspace.Ilha.SpawnPointCrystal_Nome
+    for _, islandFolder in ipairs(Workspace:GetChildren()) do
+        local potentialSpawns = {}
+
+        -- Se o cristal estiver solto direto no Workspace
+        if islandFolder.Name:find("SpawnPointCrystal") then
+            table.insert(potentialSpawns, islandFolder)
+        -- Se estiver dentro da pasta/model da ilha (ex: StarterIsland)
+        elseif islandFolder:IsA("Folder") or islandFolder:IsA("Model") then
+            for _, child in ipairs(islandFolder:GetChildren()) do
+                if child.Name:find("SpawnPointCrystal") then
+                    table.insert(potentialSpawns, child)
+                end
+            end
+        end
+
+        -- Calcula a distância de todos os cristais encontrados
+        for _, obj in ipairs(potentialSpawns) do
+            -- O objeto pode ser uma Part direta ou um Model com parts dentro
+            local objPos = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart", true)
+            
+            if objPos then
+                local dist = (hrp.Position - objPos.Position).Magnitude
+                if dist < minDist then
+                    minDist = dist
+                    closest = obj
                 end
             end
         end
     end
 
-    -- Busca em locais comuns
-    searchFolder(Workspace:FindFirstChild("ServiceNPCs"))
-    searchFolder(Workspace:FindFirstChild("NPCs"))
-    searchFolder(Workspace) -- Busca global como fallback
-
     return closest
 end
 
--- Vai até o Spawn e interage com ele
+-- 🏃‍♂️ Vai até o cristal e interage
 function SpawnService:SetSpawn()
-    -- Regra: Se já estiver setado, não precisa repetir
     if self.SpawnSetado then return true end
 
     local spawnObj = self:GetClosestSpawn()
     if not spawnObj then
-        print("🛏️ Nenhum Spawn encontrado por perto!")
-        return false
+        -- Se não achar o cristal, não trava o script, apenas avisa
+        return false 
     end
 
-    print("🛏️ Indo setar o Spawn em: " .. spawnObj.Name)
+    local targetPart = spawnObj:IsA("BasePart") and spawnObj or spawnObj:FindFirstChildWhichIsA("BasePart", true)
 
-    local targetPos = spawnObj:IsA("Model") and spawnObj:FindFirstChild("HumanoidRootPart") 
-                      or spawnObj:IsA("BasePart") and spawnObj
-
-    if targetPos then
-        -- 1. Ir até ele
-        TeleportService:FlyTo(targetPos.Position + Vector3.new(0, 0, 5))
+    if targetPart then
+        -- 1. Voa até o cristal (parando um pouco acima dele para não bugar no chão)
+        TeleportService:FlyTo(targetPart.Position + Vector3.new(0, 3, 0))
         task.wait(0.5)
 
-        -- 2. Setar o spawn (Interagir com o ProximityPrompt)
+        -- 2. Procura o botão de interação (ProximityPrompt) dentro do cristal
         local prompt = spawnObj:FindFirstChildWhichIsA("ProximityPrompt", true)
         if prompt and fireproximityprompt then
             fireproximityprompt(prompt)
-            task.wait(1) -- Tempo para a ação confirmar no servidor
+            task.wait(1) -- Dá um tempinho pro servidor salvar seu spawn
             
-            -- 3. Confirmar se foi setado e atualizar o estado
             self.SpawnSetado = true
-            print("✅ Spawn setado com sucesso!")
+            print("✅ Spawn salvo no cristal: " .. spawnObj.Name)
             return true
         end
     end
@@ -86,10 +85,10 @@ function SpawnService:SetSpawn()
     return false
 end
 
--- Regra: Reseta para false quando houver teleporte entre ilhas
+-- 🔄 Chamado pelo Teleport.lua quando o jogador muda de ilha
 function SpawnService:Reset()
     self.SpawnSetado = false
-    print("🔄 Estado do Spawn resetado (Mudança de Ilha detectada).")
+    print("🔄 Mudança de Ilha detectada. Spawn resetado para 'Não Setado'.")
 end
 
 return SpawnService
