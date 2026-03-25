@@ -4,8 +4,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LP = Players.LocalPlayer
-
-local WeaponService = Import("Services/WeaponService") -- Importa o gerenciador de armas!
+local WeaponService = Import("Services/WeaponService")
 
 local CombatService = {
     IsActive = false,
@@ -21,7 +20,6 @@ function CombatService:Init()
     self.AbilityRemote = pcall(function() return ReplicatedStorage:WaitForChild("AbilitySystem"):WaitForChild("Remotes"):WaitForChild("RequestAbility") end) and ReplicatedStorage.AbilitySystem.Remotes.RequestAbility or nil
 end
 
--- Metodo de fallback caso o jogador não escolha nenhuma arma na lista
 function CombatService:EquipFirstWeapon()
     local char = LP.Character
     if not char then return end
