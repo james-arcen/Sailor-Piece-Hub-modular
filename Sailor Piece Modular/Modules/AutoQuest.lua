@@ -10,6 +10,7 @@ local TeleportService = Import("Services/Teleport")
 local GameData = Import("Config/GameData")
 local CombatService = Import("Services/CombatService")
 local SpawnService = Import("Services/SpawnService")
+local PriorityService = Import("Services/PriorityService")
 
 local Module = {
     NoToggle = true 
@@ -257,12 +258,17 @@ end
 -- ========================================================================
 function Module:StartFarm()
     self.IsRunning = true
-    
-    -- Acorda o músculo!
-    CombatService:Start() 
+    CombatService:Start()
+    PriorityService:Request("AutoQuest")
 
     self.BrainLoop = task.spawn(function()
         while self.IsRunning and task.wait() do
+            if PriorityService:GetPermittedTask() ~= "AutoQuest" then
+                CombatService:SetTarget(nil, false)
+                task.wait(1)
+                continue
+            end
+                
             local char = LP.Character
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
             if not hrp or not self.SelectedQuest then continue end
@@ -325,10 +331,9 @@ end
 function Module:StopFarm()
     self.IsRunning = false
     if self.BrainLoop then task.cancel(self.BrainLoop); self.BrainLoop = nil end
-    
-    -- Manda o Músculo descansar
     CombatService:Stop()
     self.FarmTarget = nil
+    PriorityService:Request("AutoQuest")
 end
 
 function Module:Toggle(state)
