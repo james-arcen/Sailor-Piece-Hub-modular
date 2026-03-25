@@ -60,7 +60,6 @@ end
 
 function Module:NeedsTeleport(hrp, targetIsland)
     local currentIsland = self:GetCurrentIsland(hrp)
-    -- Se não achou nenhum NPC próximo (tá no meio do mar, etc) ou se a ilha atual for diferente da alvo, precisa teleportar!
     if not currentIsland then return true end
     return currentIsland ~= targetIsland
 end
@@ -225,6 +224,8 @@ end
 function Module:Start()
     local tabName = "Missões"
     UI:CreateSection(tabName, "Auto Quest Específico")
+    local WeaponService = Import("Services/WeaponService")
+    WeaponService:BuildUI(tabName)
 
     local container = UI.Tabs[tabName].Container
     local questDropdown
