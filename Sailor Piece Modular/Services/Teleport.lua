@@ -63,6 +63,8 @@ function Module:TeleportToIsland(displayName)
             local hum = char and char:FindFirstChild("Humanoid")
             if hum then hum.PlatformStand = false end 
             pcall(function() self.TeleportRemote:FireServer(serverIslandName) end)
+            local SpawnService = Import("Services/SpawnService")
+            SpawnService:Reset()
         end
     end
 end
