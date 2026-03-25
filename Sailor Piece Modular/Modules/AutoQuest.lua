@@ -69,29 +69,26 @@ end
 -- ========================================================================
 -- ⚙️ LÓGICA DE COMBATE E QUEST
 -- ========================================================================
-function Module:IsQuestActive(targetName)
-    if targetName == "Nenhum" then return false end
+function Module:IsQuestActive()
     local pg = LP:FindFirstChild("PlayerGui")
     if not pg then return false end
-    local targetBase = targetName:lower():gsub("%s+", "")
     
     for _, obj in ipairs(pg:GetDescendants()) do
         if obj:IsA("TextLabel") then
-            local currStr, maxStr = obj.Text:lower():match("(%d+)%s*/%s*(%d+)")
+            local currStr, maxStr = obj.Text:match("(%d+)%s*/%s*(%d+)")
+            
             if currStr and maxStr then
-                local isVis, temp = true, obj
-                while temp and temp:IsA("GuiObject") do
-                    if not temp.Visible then isVis = false; break end
-                    temp = temp.Parent
-                end
-                if isVis then
-                    local screenGui = obj:FindFirstAncestorOfClass("ScreenGui")
-                    if screenGui then
-                        for _, relativeObj in ipairs(screenGui:GetDescendants()) do
-                            if relativeObj:IsA("TextLabel") and relativeObj.Text:lower():gsub("%s+", ""):find(targetBase) then
-                                return (tonumber(currStr) < tonumber(maxStr))
-                            end
-                        end
+                local current = tonumber(currStr)
+                local maxVal = tonumber(maxStr)
+                if maxVal > 0 and maxVal <= 15 then
+                    local isVis, temp = true, obj
+                    while temp and temp:IsA("GuiObject") do
+                        if not temp.Visible then isVis = false; break end
+                        temp = temp.Parent
+                    end
+                    
+                    if isVis then
+                        return current < maxVal
                     end
                 end
             end
