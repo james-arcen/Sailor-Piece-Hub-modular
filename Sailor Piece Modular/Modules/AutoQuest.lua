@@ -67,33 +67,42 @@ function Module:NeedsTeleport(hrp, targetIsland)
 end
 
 -- ========================================================================
--- ⚙️ LÓGICA DE COMBATE E QUEST
+-- ⚙️ LÓGICA DE COMBATE E QUEST (OLHO MÁGICO DE UI)
 -- ========================================================================
 function Module:IsQuestActive()
     local pg = LP:FindFirstChild("PlayerGui")
     if not pg then return false end
     
-    for _, obj in ipairs(pg:GetDescendants()) do
-        if obj:IsA("TextLabel") then
-            local currStr, maxStr = obj.Text:match("(%d+)%s*/%s*(%d+)")
-            
+    -- Navega pelo caminho exato da interface do jogo
+    local questUI = pg:FindFirstChild("QuestUI")
+    local quest1 = questUI and questUI:FindFirstChild("Quest")
+    local quest2 = quest1 and quest1:FindFirstChild("Quest")
+    local holder = quest2 and quest2:FindFirstChild("Holder")
+    local content = holder and holder:FindFirstChild("Content")
+    local questInfo = content and content:FindFirstChild("QuestInfo")
+    local questRequirement = questInfo and questInfo:FindFirstChild("QuestRequirement")
+
+    -- Se a caixa de requisito existir, vamos ler o texto dela
+    if questRequirement and questRequirement:IsA("TextLabel") then
+        local isVis, temp = true, questRequirement
+        
+        -- Confirma se a UI da missão está visível na tela
+        while temp and temp:IsA("GuiObject") do
+            if not temp.Visible then isVis = false; break end
+            temp = temp.Parent
+        end
+        
+        if isVis then
+            -- Lê EXATAMENTE os números da missão (ex: "0/5 Defeated")
+            local currStr, maxStr = questRequirement.Text:match("(%d+)%s*/%s*(%d+)")
             if currStr and maxStr then
                 local current = tonumber(currStr)
                 local maxVal = tonumber(maxStr)
-                if maxVal > 0 and maxVal <= 15 then
-                    local isVis, temp = true, obj
-                    while temp and temp:IsA("GuiObject") do
-                        if not temp.Visible then isVis = false; break end
-                        temp = temp.Parent
-                    end
-                    
-                    if isVis then
-                        return current < maxVal
-                    end
-                end
+                return current < maxVal -- Retorna true se a missão ainda não acabou
             end
         end
     end
+    
     return false
 end
 
@@ -302,8 +311,8 @@ function Module:StartFarm()
                 continue
             end
 
-            -- Lógica de pegar a Missão
-            if not self:IsQuestActive(qTarget) then
+            -- Lógica de pegar a Missão Universal
+            if not self:IsQuestActive() then
                 CombatService:SetTarget(nil, false) -- Pausa os ataques
                 if npc and npc:FindFirstChild("HumanoidRootPart") then
                     TeleportService:FlyToNPC(qNPC)
