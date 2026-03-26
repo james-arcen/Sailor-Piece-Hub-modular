@@ -124,18 +124,18 @@ GameData.QuestDataMap = {
             Name = "Quest 9: Mobs (Sorcerer)", 
             NPC = "QuestNPC9", 
             Target = "Sorcerer", 
-            Tracker = "Socerer Hunter", 
+            Tracker = "Sorcerer Hunter", 
             Type = "Mob"
         }, 
         {
             Name = "Quest 10: Mobs (Panda Sorcerer)", 
             NPC = "QuestNPC10", 
             Target = "PandaMiniBoss", 
-            Tracker = "Panda Socerer Boss",
+            Tracker = "Panda Sorcerer Boss",
             Type = "Boss"
         }
     },
-    ["Hollow Ilha"] = {
+    ["Hollow Island"] = {
         {
             Name = "Quest 11: Mobs (Hollow)", 
             NPC = "QuestNPC11", 
@@ -230,7 +230,7 @@ GameData.QuestProgression = {
     { Island = "Desert", Quest = "Quest 5: Mobs (Bandits)", MinLevel = 750 }, { Island = "Desert", Quest = "Quest 6: Boss (Desert Boss)", MinLevel = 1000 },
     { Island = "Snow", Quest = "Quest 7: Mobs (Frost Rogue)", MinLevel = 1500 }, { Island = "Snow", Quest = "Quest 8: Boss (Snow Boss)", MinLevel = 2000 },
     { Island = "Shibuya Station", Quest = "Quest 9: Mobs (Sorcerer)", MinLevel = 3000 }, { Island = "Shibuya Station", Quest = "Quest 10: Mobs (Panda Sorcerer)", MinLevel = 4000 },
-    { Island = "Hollow Ilha", Quest = "Quest 11: Mobs (Hollow)", MinLevel = 5000 }, { Island = "Shinjuku", Quest = "Quest 12: Mobs", MinLevel = 6250 },
+    { Island = "Hollow Island", Quest = "Quest 11: Mobs (Hollow)", MinLevel = 5000 }, { Island = "Shinjuku", Quest = "Quest 12: Mobs", MinLevel = 6250 },
     { Island = "Shinjuku", Quest = "Quest 13: Mobs", MinLevel = 7000 }, { Island = "Slime", Quest = "Quest 14: Mobs (Slime)", MinLevel = 8000 },
     { Island = "Academy", Quest = "Quest 15: Mobs (Teacher)", MinLevel = 10000 }, { Island = "Judgement", Quest = "Quest 16: Mobs", MinLevel = 10750 },
     { Island = "Soul Dominion", Quest = "Quest 17: Mobs", MinLevel = 11500 }
