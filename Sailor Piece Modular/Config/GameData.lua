@@ -140,7 +140,7 @@ GameData.QuestDataMap = {
             Name = "Quest 11: Mobs (Hollow)", 
             NPC = "QuestNPC11", 
             Target = "Hollow", 
-            Tracker = "Caçador do Vácuo", -- Já preenchido!
+            Tracker = "Caçador do Vácuo",
             Type = "Mob"
         }
     },
