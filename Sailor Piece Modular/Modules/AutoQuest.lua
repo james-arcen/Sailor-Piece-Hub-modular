@@ -193,6 +193,19 @@ function Module:StartFarm()
     CombatService:Start()
     PriorityService:Request("AutoQuest")
 
+    -- 🔥 HACK: ATIVA O AUTO-REPEAT NATIVO DO JOGO SILENCIOSAMENTE 🔥
+    task.spawn(function()
+        pcall(function()
+            local remotes = ReplicatedStorage:WaitForChild("RemoteEvents", 3)
+            if remotes and remotes:FindFirstChild("SettingsToggle") then
+                -- Dispara os exatos remotes que você capturou no Spy!
+                remotes.SettingsToggle:FireServer("EnableQuestRepeat", true)
+                remotes.SettingsToggle:FireServer("AutoQuestRepeat", true)
+                print("⚙️ Auto-Repeat Nativo do Jogo Ativado com Sucesso!")
+            end
+        end)
+    end)
+
     self.BrainLoop = task.spawn(function()
         while self.IsRunning and task.wait() do
             if PriorityService:GetPermittedTask() ~= "AutoQuest" then
@@ -231,7 +244,7 @@ function Module:StartFarm()
             local serviceFolder = Workspace:FindFirstChild("ServiceNPCs")
             local npc = serviceFolder and serviceFolder:FindFirstChild(qNPC)
 
-            -- 🔥 CORREÇÃO 1: Âncoras (Não tem combate)
+            -- Âncoras (Não tem combate)
             if qTarget == "Nenhum" then
                 CombatService:SetTarget(nil, false)
                 if npc and npc:FindFirstChild("HumanoidRootPart") then TeleportService:FlyToNPC(qNPC) end
@@ -240,7 +253,7 @@ function Module:StartFarm()
 
             -- 3. FLUXOGRAMA DE DECISÃO DA MISSÃO
             if not QuestService:HasAnyQuest() then
-                -- NÃO TEM MISSÃO (Nenhum UI ativo) -> Vai no NPC pegar
+                -- NÃO TEM MISSÃO (Só vai no NPC na primeira vez!)
                 CombatService:SetTarget(nil, false)
                 if npc and npc:FindFirstChild("HumanoidRootPart") then
                     TeleportService:FlyToNPC(qNPC)
@@ -248,12 +261,12 @@ function Module:StartFarm()
                     local prompt = npc:FindFirstChildWhichIsA("ProximityPrompt", true)
                     if prompt and fireproximityprompt then 
                         fireproximityprompt(prompt) 
-                        task.wait(2.5) -- 🔥 CORREÇÃO 2: Delay aumentado para a UI carregar!
+                        task.wait(2.5) 
                     end
                 end
 
             elseif not QuestService:IsTracking(qTracker) then
-                -- TEM MISSÃO, MAS É A ERRADA (DIFERENTE) -> Vai no NPC para trocar/substituir
+                -- TEM MISSÃO, MAS É A ERRADA -> Vai no NPC trocar
                 CombatService:SetTarget(nil, false)
                 if npc and npc:FindFirstChild("HumanoidRootPart") then
                     TeleportService:FlyToNPC(qNPC)
@@ -261,14 +274,14 @@ function Module:StartFarm()
                     local prompt = npc:FindFirstChildWhichIsA("ProximityPrompt", true)
                     if prompt and fireproximityprompt then 
                         fireproximityprompt(prompt) 
-                        task.wait(2.5) -- 🔥 CORREÇÃO 2: Delay aumentado!
+                        task.wait(2.5)
                     end
                 end
 
             else
-                -- A MISSÃO ESTÁ ATIVA E É A CORRETA (IGUAL) -> Hora de lutar!
+                -- A MISSÃO ESTÁ ATIVA E É A CORRETA -> HORA DE LUTAR!
                 if QuestService:IsQuestCompleted() then
-                    -- Se a missão completou, pausa os ataques e espera o jogo atualizar a tela
+                    -- Se completou, espera 1 segundinho pro jogo devolver a quest nativamente!
                     CombatService:SetTarget(nil, false)
                     task.wait(1)
                 else
