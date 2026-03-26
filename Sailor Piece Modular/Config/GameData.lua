@@ -68,14 +68,14 @@ GameData.QuestDataMap = {
             Name = "Quest 3: Mobs (Monkey)", 
             NPC = "QuestNPC3", 
             Target = "Monkey", 
-            Tracker = "PREENCHER", 
+            Tracker = "Caçador de Macacos", 
             Type = "Mob"
         }, 
         {
             Name = "Quest 4: Boss (Monkey Boss)", 
             NPC = "QuestNPC4", 
             Target = "MonkeyBoss", 
-            Tracker = "PREENCHER", 
+            Tracker = "Chefe dos Macacos", 
             Type = "Boss"
         }
     },
@@ -84,14 +84,14 @@ GameData.QuestDataMap = {
             Name = "Quest 5: Mobs (Bandits)", 
             NPC = "QuestNPC5", 
             Target = "DesertBandit", 
-            Tracker = "PREENCHER", 
+            Tracker = "Caçador de Bandidos do Deserto", 
             Type = "Mob"
         }, 
         {
             Name = "Quest 6: Boss (Desert Boss)", 
             NPC = "QuestNPC6", 
             Target = "DesertBoss", 
-            Tracker = "Chefe dos Bandidos do Deserto", -- Já preenchido!
+            Tracker = "Chefe dos Bandidos do Deserto",
             Type = "Boss"
         }
     },
@@ -100,14 +100,14 @@ GameData.QuestDataMap = {
             Name = "Quest 7: Mobs (Frost Rogue)", 
             NPC = "QuestNPC7", 
             Target = "FrostRogue", 
-            Tracker = "PREENCHER", 
+            Tracker = "Caçador Bandido do Gelo", 
             Type = "Mob"
         }, 
         {
             Name = "Quest 8: Boss (Snow Boss)", 
             NPC = "QuestNPC8", 
             Target = "SnowBoss", 
-            Tracker = "Guardião do Inverno", -- Já preenchido!
+            Tracker = "Chefe dos Guardiões do Inverno",
             Type = "Boss"
         }
     },
@@ -116,7 +116,6 @@ GameData.QuestDataMap = {
             Name = "Âncora Sailor", 
             NPC = "JinwooMovesetNPC", 
             Target = "Nenhum", 
-            -- NPCs de âncora (Target = "Nenhum") não precisam de Tracker
             Type = "Mob" 
         }
     },
@@ -125,14 +124,14 @@ GameData.QuestDataMap = {
             Name = "Quest 9: Mobs (Sorcerer)", 
             NPC = "QuestNPC9", 
             Target = "Sorcerer", 
-            Tracker = "PREENCHER", 
+            Tracker = "Caçador Feiticeiro", 
             Type = "Mob"
         }, 
         {
             Name = "Quest 10: Mobs (Panda Sorcerer)", 
             NPC = "QuestNPC10", 
             Target = "PandaMiniBoss", 
-            Tracker = "Feiriceiro-Panda", -- Já preenchido!
+            Tracker = "Chefe dos Feiriceiro-Panda",
             Type = "Boss"
         }
     },
@@ -150,14 +149,14 @@ GameData.QuestDataMap = {
             Name = "Quest 12: Mobs", 
             NPC = "QuestNPC12", 
             Target = "StrongSorcerer", 
-            Tracker = "PREENCHER", 
+            Tracker = "Caçador de Feiticeiros Forte", 
             Type = "Mob"
         }, 
         {
             Name = "Quest 13: Mobs", 
             NPC = "QuestNPC13", 
             Target = "Curse", 
-            Tracker = "PREENCHER", 
+            Tracker = "Caçador de Maldições", 
             Type = "Mob"
         }
     },
@@ -166,7 +165,7 @@ GameData.QuestDataMap = {
             Name = "Quest 14: Mobs (Slime)", 
             NPC = "QuestNPC14", 
             Target = "Slime", 
-            Tracker = "PREENCHER", 
+            Tracker = "Caçador de Guerreiros de Slime", 
             Type = "Mob"
         }
     },
@@ -175,7 +174,7 @@ GameData.QuestDataMap = {
             Name = "Quest 15: Mobs (Teacher)", 
             NPC = "QuestNPC15", 
             Target = "AcademyTeacher", 
-            Tracker = "PREENCHER", 
+            Tracker = "Desafio da Academia", 
             Type = "Mob"
         }
     },
@@ -184,7 +183,7 @@ GameData.QuestDataMap = {
             Name = "Quest 16: Mobs", 
             NPC = "QuestNPC16", 
             Target = "Swordsman", 
-            Tracker = "PREENCHER", 
+            Tracker = "Mestres de Lâminas", 
             Type = "Mob"
         }
     },
@@ -193,7 +192,7 @@ GameData.QuestDataMap = {
             Name = "Quest 17: Mobs", 
             NPC = "QuestNPC17", 
             Target = "Quincy", 
-            Tracker = "PREENCHER", 
+            Tracker = "Purificação de Quincy", 
             Type = "Mob"
         }
     },
@@ -202,7 +201,6 @@ GameData.QuestDataMap = {
             Name = "Âncora de Ilha", 
             NPC = "SummonBossNPC", 
             Target = "Nenhum", 
-            -- NPCs de âncora (Target = "Nenhum") não precisam de Tracker
             Type = "Mob"
         }
     }
