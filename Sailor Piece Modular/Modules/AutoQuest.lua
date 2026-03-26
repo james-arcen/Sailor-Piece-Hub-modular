@@ -207,7 +207,7 @@ function Module:StartFarm()
             if not hrp or not self.SelectedQuest then continue end
 
             local qTarget = self.SelectedQuest.Target
-            local qTracker = self.SelectedQuest.Tracker or qTarget -- Puxa o tradutor se existir!
+            local qTracker = self.SelectedQuest.Tracker or qTarget
             local qNPC = self.SelectedQuest.NPC
             local qIsland = self.SelectedQuest.Island
             local qType = self.SelectedQuest.Type
@@ -231,6 +231,13 @@ function Module:StartFarm()
             local serviceFolder = Workspace:FindFirstChild("ServiceNPCs")
             local npc = serviceFolder and serviceFolder:FindFirstChild(qNPC)
 
+            -- 🔥 CORREÇÃO 1: Âncoras (Não tem combate)
+            if qTarget == "Nenhum" then
+                CombatService:SetTarget(nil, false)
+                if npc and npc:FindFirstChild("HumanoidRootPart") then TeleportService:FlyToNPC(qNPC) end
+                continue
+            end
+
             -- 3. FLUXOGRAMA DE DECISÃO DA MISSÃO
             if not QuestService:HasAnyQuest() then
                 -- NÃO TEM MISSÃO (Nenhum UI ativo) -> Vai no NPC pegar
@@ -239,7 +246,10 @@ function Module:StartFarm()
                     TeleportService:FlyToNPC(qNPC)
                     task.wait(0.2)
                     local prompt = npc:FindFirstChildWhichIsA("ProximityPrompt", true)
-                    if prompt and fireproximityprompt then fireproximityprompt(prompt); task.wait(1.5) end
+                    if prompt and fireproximityprompt then 
+                        fireproximityprompt(prompt) 
+                        task.wait(2.5) -- 🔥 CORREÇÃO 2: Delay aumentado para a UI carregar!
+                    end
                 end
 
             elseif not QuestService:IsTracking(qTracker) then
@@ -249,7 +259,10 @@ function Module:StartFarm()
                     TeleportService:FlyToNPC(qNPC)
                     task.wait(0.2)
                     local prompt = npc:FindFirstChildWhichIsA("ProximityPrompt", true)
-                    if prompt and fireproximityprompt then fireproximityprompt(prompt); task.wait(1.5) end
+                    if prompt and fireproximityprompt then 
+                        fireproximityprompt(prompt) 
+                        task.wait(2.5) -- 🔥 CORREÇÃO 2: Delay aumentado!
+                    end
                 end
 
             else
