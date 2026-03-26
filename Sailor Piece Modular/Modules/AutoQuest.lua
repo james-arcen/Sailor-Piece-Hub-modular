@@ -1,5 +1,5 @@
 -- ========================================================================
--- 📦 MÓDULO: AUTO QUEST UNITÁRIA (COM GPS POR NPC ÂNCORA)
+-- 📦 MÓDULO: AUTO QUEST (ORQUESTRADOR DE FLUXO)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -11,18 +11,14 @@ local GameData = Import("Config/GameData")
 local CombatService = Import("Services/CombatService")
 local SpawnService = Import("Services/SpawnService")
 local PriorityService = Import("Services/PriorityService")
+local QuestService = Import("Services/QuestService")
 
-local Module = {
-    NoToggle = true 
-}
+local Module = { NoToggle = true }
 
 function Module:Init()
     self.IsRunning = false
-    self.MoveLoop = nil
-    self.AttackLoop = nil
     self.FarmTarget = nil
-    self.OrbitAngle = 0
-
+    
     self.QuestDataMap = GameData.QuestDataMap
     self.NpcToIsland = GameData.NpcToIsland
     self.IslandsInOrder = GameData.IslandsInOrder
@@ -30,33 +26,20 @@ function Module:Init()
     self.SelectedIsland = self.IslandsInOrder[1]
     self.SelectedQuest = self.QuestDataMap[self.SelectedIsland][1]
     self.SelectedQuest.Island = self.SelectedIsland
-
-    self.CombatRemote = pcall(function() return ReplicatedStorage:WaitForChild("CombatSystem"):WaitForChild("Remotes"):WaitForChild("RequestHit") end) and ReplicatedStorage.CombatSystem.Remotes.RequestHit or nil
-    self.AbilityRemote = pcall(function() return ReplicatedStorage:WaitForChild("AbilitySystem"):WaitForChild("Remotes"):WaitForChild("RequestAbility") end) and ReplicatedStorage.AbilitySystem.Remotes.RequestAbility or nil
 end
 
--- ========================================================================
--- 📍 SISTEMA DE GPS BASEADO EM NPCS ÂNCORA
--- ========================================================================
 function Module:GetCurrentIsland(hrp)
-    local closestIsland = nil
-    local minDist = math.huge
+    local closestIsland, minDist = nil, math.huge
     local serviceFolder = Workspace:FindFirstChild("ServiceNPCs")
-    
     if not serviceFolder then return nil end
 
-    -- Procura o NPC de missão mais próximo para deduzir a ilha atual
     for npcName, islandName in pairs(self.NpcToIsland) do
         local npc = serviceFolder:FindFirstChild(npcName)
         if npc and npc:FindFirstChild("HumanoidRootPart") then
             local dist = (hrp.Position - npc.HumanoidRootPart.Position).Magnitude
-            if dist < minDist then
-                minDist = dist
-                closestIsland = islandName
-            end
+            if dist < minDist then minDist, closestIsland = dist, islandName end
         end
     end
-    
     return closestIsland
 end
 
@@ -64,46 +47,6 @@ function Module:NeedsTeleport(hrp, targetIsland)
     local currentIsland = self:GetCurrentIsland(hrp)
     if not currentIsland then return true end
     return currentIsland ~= targetIsland
-end
-
--- ========================================================================
--- ⚙️ LÓGICA DE COMBATE E QUEST (OLHO MÁGICO DE UI)
--- ========================================================================
-function Module:IsQuestActive()
-    local pg = LP:FindFirstChild("PlayerGui")
-    if not pg then return false end
-    
-    -- Navega pelo caminho exato da interface do jogo
-    local questUI = pg:FindFirstChild("QuestUI")
-    local quest1 = questUI and questUI:FindFirstChild("Quest")
-    local quest2 = quest1 and quest1:FindFirstChild("Quest")
-    local holder = quest2 and quest2:FindFirstChild("Holder")
-    local content = holder and holder:FindFirstChild("Content")
-    local questInfo = content and content:FindFirstChild("QuestInfo")
-    local questRequirement = questInfo and questInfo:FindFirstChild("QuestRequirement")
-
-    -- Se a caixa de requisito existir, vamos ler o texto dela
-    if questRequirement and questRequirement:IsA("TextLabel") then
-        local isVis, temp = true, questRequirement
-        
-        -- Confirma se a UI da missão está visível na tela
-        while temp and temp:IsA("GuiObject") do
-            if not temp.Visible then isVis = false; break end
-            temp = temp.Parent
-        end
-        
-        if isVis then
-            -- Lê EXATAMENTE os números da missão (ex: "0/5 Defeated")
-            local currStr, maxStr = questRequirement.Text:match("(%d+)%s*/%s*(%d+)")
-            if currStr and maxStr then
-                local current = tonumber(currStr)
-                local maxVal = tonumber(maxStr)
-                return current < maxVal -- Retorna true se a missão ainda não acabou
-            end
-        end
-    end
-    
-    return false
 end
 
 function Module:GetClosestMob(mobName, mobType)
@@ -128,30 +71,18 @@ function Module:GetClosestMob(mobName, mobType)
                 if mobType == "Mob" and isBoss then continue end
 
                 local dist = (hrp.Position - npcBase.Position).Magnitude
-                if dist < minDist then 
-                    minDist = dist
-                    closest = npc 
-                end
+                if dist < minDist then minDist, closest = dist, npc end
             end
         end
     end
     return closest
 end
 
-function Module:EquipWeapon()
-    local char = LP.Character
-    if not char then return end
-    local tool = char:FindFirstChildOfClass("Tool")
-    if not tool then
-        local backpack = LP:FindFirstChild("Backpack")
-        if backpack then tool = backpack:FindFirstChildOfClass("Tool"); if tool then tool.Parent = char end end
-    end
-end
-
 -- ========================================================================
--- 🖥️ UI E DROPDOWNS
+-- 🖥️ UI (Mantida idêntica à versão anterior)
 -- ========================================================================
 local function CreateDynamicDropdown(container, defaultText, options, callback)
+    -- (O código do Dropdown da UI continua o mesmo. Pode manter o seu!)
     local dropdownFrame = Instance.new("Frame")
     dropdownFrame.Size = UDim2.new(1, -10, 0, 35)
     dropdownFrame.BackgroundTransparency = 1
@@ -239,10 +170,8 @@ function Module:Start()
     CreateDynamicDropdown(container, "🌍 Ilha: " .. self.SelectedIsland, self.IslandsInOrder, function(island)
         self.SelectedIsland = island
         local newQuests = self.QuestDataMap[island]
-        
         self.SelectedQuest = newQuests[1]
         self.SelectedQuest.Island = island
-        
         questDropdown.Refresh(newQuests, "📜 Missão: " .. self.SelectedQuest.Name)
     end)
 
@@ -251,16 +180,13 @@ function Module:Start()
         self.SelectedQuest.Island = self.SelectedIsland
     end)
 
-    UI:CreateToggle(tabName, "Auto Quest Unitária", function(state)
-        self:Toggle(state)
-    end)
-    
+    UI:CreateToggle(tabName, "Auto Quest Unitária", function(state) self:Toggle(state) end)
     local WeaponService = Import("Services/WeaponService")
     WeaponService:BuildUI(tabName)
 end
 
 -- ========================================================================
--- 🔄 LOOPS DE FARM
+-- 🔄 LÓGICA DO CÉREBRO (O SEU FLUXOGRAMA APLICADO)
 -- ========================================================================
 function Module:StartFarm()
     self.IsRunning = true
@@ -281,19 +207,20 @@ function Module:StartFarm()
             if not hrp or not self.SelectedQuest then continue end
 
             local qTarget = self.SelectedQuest.Target
+            local qTracker = self.SelectedQuest.Tracker or qTarget -- Puxa o tradutor se existir!
             local qNPC = self.SelectedQuest.NPC
             local qIsland = self.SelectedQuest.Island
             local qType = self.SelectedQuest.Type
 
-            -- GPS de Ilha
+            -- 1. VERIFICAR LOCALIZAÇÃO
             if self:NeedsTeleport(hrp, qIsland) then
                 CombatService:SetTarget(nil, false)
-                print("🗺️ Localização divergente! Teleportando para: " .. qIsland)
                 TeleportService:TeleportToIsland(qIsland)
                 task.wait(4)
                 continue
             end
 
+            -- 2. SETAR SPAWN
             if not SpawnService.SpawnSetado then
                 CombatService:SetTarget(nil, false)
                 SpawnService:SetSpawn()
@@ -304,31 +231,43 @@ function Module:StartFarm()
             local serviceFolder = Workspace:FindFirstChild("ServiceNPCs")
             local npc = serviceFolder and serviceFolder:FindFirstChild(qNPC)
 
-            -- Âncoras (Não tem combate)
-            if qTarget == "Nenhum" then
+            -- 3. FLUXOGRAMA DE DECISÃO DA MISSÃO
+            if not QuestService:HasAnyQuest() then
+                -- NÃO TEM MISSÃO (Nenhum UI ativo) -> Vai no NPC pegar
                 CombatService:SetTarget(nil, false)
-                if npc and npc:FindFirstChild("HumanoidRootPart") then TeleportService:FlyToNPC(qNPC) end
-                continue
-            end
-
-            -- Lógica de pegar a Missão Universal
-            if not self:IsQuestActive() then
-                CombatService:SetTarget(nil, false) -- Pausa os ataques
                 if npc and npc:FindFirstChild("HumanoidRootPart") then
                     TeleportService:FlyToNPC(qNPC)
                     task.wait(0.2)
                     local prompt = npc:FindFirstChildWhichIsA("ProximityPrompt", true)
                     if prompt and fireproximityprompt then fireproximityprompt(prompt); task.wait(1.5) end
                 end
-            else
-                -- Lógica de Combate: Missão ativa! Procura o mob
-                if not self.FarmTarget or not self.FarmTarget:FindFirstChild("Humanoid") or self.FarmTarget.Humanoid.Health <= 0 then
-                    self.FarmTarget = self:GetClosestMob(qTarget, qType)
+
+            elseif not QuestService:IsTracking(qTracker) then
+                -- TEM MISSÃO, MAS É A ERRADA (DIFERENTE) -> Vai no NPC para trocar/substituir
+                CombatService:SetTarget(nil, false)
+                if npc and npc:FindFirstChild("HumanoidRootPart") then
+                    TeleportService:FlyToNPC(qNPC)
+                    task.wait(0.2)
+                    local prompt = npc:FindFirstChildWhichIsA("ProximityPrompt", true)
+                    if prompt and fireproximityprompt then fireproximityprompt(prompt); task.wait(1.5) end
                 end
-                
-                -- Se achou o alvo, MANDA O MÚSCULO TRABALHAR! (true = usar Voo Orbital)
-                if self.FarmTarget then
-                    CombatService:SetTarget(self.FarmTarget, true)
+
+            else
+                -- A MISSÃO ESTÁ ATIVA E É A CORRETA (IGUAL) -> Hora de lutar!
+                if QuestService:IsQuestCompleted() then
+                    -- Se a missão completou, pausa os ataques e espera o jogo atualizar a tela
+                    CombatService:SetTarget(nil, false)
+                    task.wait(1)
+                else
+                    if not self.FarmTarget or not self.FarmTarget:FindFirstChild("Humanoid") or self.FarmTarget.Humanoid.Health <= 0 then
+                        self.FarmTarget = self:GetClosestMob(qTarget, qType)
+                    end
+                    
+                    if self.FarmTarget then
+                        CombatService:SetTarget(self.FarmTarget, true)
+                    else
+                        CombatService:SetTarget(nil, false)
+                    end
                 end
             end
         end
