@@ -209,7 +209,6 @@ function Module:StartFarm()
     self.BrainLoop = task.spawn(function()
         while self.IsRunning and task.wait() do
             if PriorityService:GetPermittedTask() ~= "AutoQuest" then
-                CombatService:SetTarget(nil, false)
                 task.wait(1)
                 continue
             end
