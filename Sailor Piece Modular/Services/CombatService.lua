@@ -75,7 +75,7 @@ function CombatService:Start()
     self.AttackLoop = task.spawn(function()
         local fruitKeys = {Enum.KeyCode.Z, Enum.KeyCode.X, Enum.KeyCode.C, Enum.KeyCode.V}
 
-        -- Otimizado com debounce de 0.15s
+        -- 🔥 Otimizado com debounce de 0.15s e sem vazamento de Threads
         while self.IsActive and task.wait(0.15) do
             if self.Target and self.Target:FindFirstChild("Humanoid") and self.Target.Humanoid.Health > 0 then
                 
@@ -94,22 +94,21 @@ function CombatService:Start()
                 end
 
                 for _, wName in ipairs(namesToAttack) do
+                    -- Ataque Básico
                     if self.CombatRemote then pcall(function() self.CombatRemote:FireServer() end) end
                     
+                    -- Habilidades (Espada/Melee)
                     if self.AbilityRemote then 
-                        task.spawn(function()
-                            for i = 1, 4 do pcall(function() self.AbilityRemote:FireServer(i) end) end 
-                        end)
+                        for i = 1, 4 do pcall(function() self.AbilityRemote:FireServer(i) end) end 
                     end
 
+                    -- Habilidades (Fruta)
                     if self.FruitRemote then
-                        task.spawn(function()
-                            for _, key in ipairs(fruitKeys) do
-                                pcall(function()
-                                    self.FruitRemote:FireServer("UseAbility", {["KeyCode"] = key, ["FruitPower"] = wName})
-                                end)
-                            end
-                        end)
+                        for _, key in ipairs(fruitKeys) do
+                            pcall(function()
+                                self.FruitRemote:FireServer("UseAbility", {["KeyCode"] = key, ["FruitPower"] = wName})
+                            end)
+                        end
                     end
                 end
 
