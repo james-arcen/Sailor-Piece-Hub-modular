@@ -257,7 +257,7 @@ GameData.SilentBosses = {
 -- ========================================================================
 GameData.BossChatNames = {
     ["JinwooBoss"] = "Solo Hunter",
-    ["AlucardBoss"] = "",
+    ["AlucardBoss"] = "Vampire King",
     ["YujiBoss"] = "Cursed Vessel",
     ["SukunaBoss"] = "Cursed King",
     ["GojoBoss"] = "Limitless Sorcerer",
