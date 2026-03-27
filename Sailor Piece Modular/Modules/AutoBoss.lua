@@ -6,12 +6,12 @@ local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextChatService = game:GetService("TextChatService")
 local LP = Players.LocalPlayer
-
 local UI = Import("Ui/UI")
 local TeleportService = Import("Services/Teleport")
 local GameData = Import("Config/GameData")
 local CombatService = Import("Services/CombatService")
 local PriorityService = Import("Services/PriorityService")
+local SpawnService = Import("Services/SpawnService")
 
 local Module = { NoToggle = true }
 
@@ -354,12 +354,21 @@ function Module:StartFarm()
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
             if not hrp then continue end
             
-            -- 🌍 TELEPORTE INTELIGENTE
+-- 🌍 TELEPORTE INTELIGENTE E SPAWN
             local currentIsland = self:GetCurrentIsland(hrp)
             if currentIsland ~= currentBoss.Island then
                 CombatService:SetTarget(nil, false)
                 TeleportService:TeleportToIsland(currentBoss.Island)
-                task.wait(4)
+                SpawnService.SpawnSetado = false
+                task.wait(1.5)
+                continue
+            end
+            
+            -- 🛏️ SETAR SPAWN
+            if not SpawnService.SpawnSetado then
+                CombatService:SetTarget(nil, false)
+                SpawnService:SetSpawn()
+                task.wait(1)
                 continue
             end
             
@@ -370,7 +379,6 @@ function Module:StartFarm()
                 self.BossStateCache[currentBoss.Target] = "Alive"
                 CombatService:SetTarget(bossModel, true)
             else
-                -- O Bot chegou lá e o bicho não tá?
                 CombatService:SetTarget(nil, false)
                 self.BossStateCache[currentBoss.Target] = "Dead"
                 self.DeadTimes[currentBoss.Target] = tick()
