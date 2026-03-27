@@ -236,22 +236,20 @@ GameData.QuestProgression = {
     { Island = "Soul Dominion", Quest = "Quest 17: Mobs", MinLevel = 11500 }
 }
 
--- 7. Chefões Ocultos, Invocados e Eventos de Tempo (Sem Missão)
-GameData.HiddenBosses = {
+GameData.TimedBosses = {
     ["Sailor"] = {"JinwooBoss", "AlucardBoss"},
     ["Shibuya Station"] = {"YujiBoss", "SukunaBoss", "GojoBoss"},
     ["Hollow Island"] = {"AizenBoss"},
-    ["Judgement"] = {"YamatoBoss"},
+    ["Judgement"] = {"YamatoBoss"}
 }
 
--- 8. Chefões de Invocação (Precisam disparar o Remote: SummonBossRemote)
-GameData.SummonBosses = {
-    ["Boss Island"] = {"SaberBoss", "QinShiBoss", "IchigoBoss", "GilgameshBoss", "BlessedMaidenBoss", "SaberAlterBoss"}
-}
-
--- 9. Chefões de Evento / Tempo (Requerem o "Sniper de Chat" para achar)
-GameData.TimedBosses = {
-    ["Eventos"] = {"MadokaBoss", "Rimuru"}
+-- 8. Cronômetro dos Chefes Silenciosos (Respawn em segundos)
+GameData.SilentBosses = {
+    ["ThiefBoss"] = 8,
+    ["MonkeyBoss"] = 8,
+    ["DesertBoss"] = 8,
+    ["SnowBoss"] = 8,
+    ["PandaMiniBoss"] = 8
 }
 
 return GameData
