@@ -44,6 +44,8 @@ local TeleportModule = Import("Services/Teleport")
 Core:RegisterModule("Mundo & Teleporte", "Mundo & Teleporte", TeleportModule)
 local AutoFarmModule = Import("Modules/AutoFarm")
 Core:RegisterModule("Auto Farm (Qualquer Mob)", "Farm & Nível", AutoFarmModule)
+local AutoBossModule = Import("Modules/AutoBoss")
+Core:RegisterModule("Auto Boss", "Auto Boss", AutoBossModule)
 
 -- 4. Iniciar e Conectar o Botão de Fechar
 function Core:Init()
