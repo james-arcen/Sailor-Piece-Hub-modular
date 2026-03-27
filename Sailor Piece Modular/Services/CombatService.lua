@@ -15,10 +15,10 @@ local CombatService = {
     MoveLoop = nil,
     AttackLoop = nil,
     
-    -- 🔥 SISTEMA DE CONTROLE DE SPAM (Anti-Crash)
+    -- 🔥 SISTEMA DE FILA COM MULTI-ARMAS (Anti-Crash)
     SkillQueue = {},
     LastSkillTime = 0,
-    ThrottleDelay = 0.35 -- Dispara 1 habilidade a cada 0.35s (Salva a CPU e Rede)
+    ThrottleDelay = 0.25
 }
 
 function CombatService:Init()
@@ -84,19 +84,24 @@ function CombatService:Start()
     self.AttackLoop = task.spawn(function()
         local fruitKeys = {Enum.KeyCode.Z, Enum.KeyCode.X, Enum.KeyCode.C, Enum.KeyCode.V}
 
-        -- O loop roda a cada 0.1s para ataques básicos
+        -- O loop principal roda a cada 0.1s para o soco sair rápido
         while self.IsActive and task.wait(0.1) do
             if self.Target and self.Target:FindFirstChild("Humanoid") and self.Target.Humanoid.Health > 0 then
                 
-                -- 1. ATAQUE BÁSICO (Pode ser rápido, não trava o jogo)
+                -- 1. ATAQUE BÁSICO (M1)
+                -- O M1 é disparado globalmente. Como você equipou todas juntas, 
+                -- o servidor automaticamente usa o ataque da sua arma/melee e ignora a fruta!
                 if self.CombatRemote then pcall(function() self.CombatRemote:FireServer() end) end
                 
-                -- 2. FILA DE HABILIDADES (Executa 1 por vez com Throttle)
+                -- 2. FILA DE HABILIDADES (Executada a cada 0.2s)
                 if tick() - self.LastSkillTime >= self.ThrottleDelay then
                     
                     if #self.SkillQueue > 0 then
-                        -- Retira a primeira habilidade da fila e dispara
+                        -- Retira a primeira skill da fila e dispara
                         local skillToCast = table.remove(self.SkillQueue, 1)
+                        
+                        -- Garante que o item está equipado antes de lançar o poder
+                        WeaponService:EquipWeapon(skillToCast.Weapon)
                         
                         if skillToCast.Type == "Ability" then
                             if self.AbilityRemote then 
@@ -108,30 +113,25 @@ function CombatService:Start()
                             end
                         end
                         
-                        -- Atualiza o tempo para garantir o delay da próxima
                         self.LastSkillTime = tick()
                     else
-                        -- Fila vazia? Vamos preencher com as habilidades da Arma Atual!
+                        -- SE A FILA ESTIVER VAZIA: Equipa as armas selecionadas e enche a fila de novo!
                         local weaponsToUse = WeaponService.SelectedWeapons
-                        local wName = nil
 
                         if #weaponsToUse == 0 then
-                            wName = self:EquipFirstWeapon()
-                        else
-                            -- 🔥 LIMITAÇÃO VITAL: Equipa APENAS a primeira arma da lista. 
-                            -- Impede o jogo de calcular física de 5 itens no mesmo frame.
-                            wName = weaponsToUse[1]
-                            WeaponService:EquipWeapon(wName)
-                        end
-
-                        if wName then
-                            -- Popula as skills numeradas (1, 2, 3, 4)
-                            for i = 1, 4 do
-                                table.insert(self.SkillQueue, {Type = "Ability", Key = i, Weapon = wName})
+                            -- Se o jogador não escolheu nada na UI, puxa a primeira coisa que achar
+                            local wName = self:EquipFirstWeapon()
+                            if wName then
+                                for i = 1, 4 do table.insert(self.SkillQueue, {Type = "Ability", Key = i, Weapon = wName}) end
+                                for _, k in ipairs(fruitKeys) do table.insert(self.SkillQueue, {Type = "Fruit", Key = k, Weapon = wName}) end
                             end
-                            -- Popula as skills de fruta (Z, X, C, V)
-                            for _, k in ipairs(fruitKeys) do
-                                table.insert(self.SkillQueue, {Type = "Fruit", Key = k, Weapon = wName})
+                        else
+                            -- Multi-Equip: Equipa a Arma e a Fruta de uma vez e coloca os poderes na Fila
+                            for _, wName in ipairs(weaponsToUse) do
+                                WeaponService:EquipWeapon(wName)
+                                
+                                for i = 1, 4 do table.insert(self.SkillQueue, {Type = "Ability", Key = i, Weapon = wName}) end
+                                for _, k in ipairs(fruitKeys) do table.insert(self.SkillQueue, {Type = "Fruit", Key = k, Weapon = wName}) end
                             end
                         end
                     end
