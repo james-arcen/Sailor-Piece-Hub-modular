@@ -1,6 +1,17 @@
 local REPO_URL = "https://raw.githubusercontent.com/Noob1Code/Sailor-Piece-Hub-modular/main/Sailor%20Piece%20Modular/"
 local moduleCache = {}
 
+pcall(function()
+    local Players = game:GetService("Players")
+    local VirtualUser = game:GetService("VirtualUser")
+    Players.LocalPlayer.Idled:Connect(function()
+        VirtualUser:CaptureController()
+        VirtualUser:ClickButton1(Vector2.new())
+        VirtualUser:ClickButton2(Vector2.new())
+    end)
+end)
+print("🛡️ Sistema Anti-AFK Ativado!")
+
 getgenv().Import = function(modulePath)
     if moduleCache[modulePath] then return moduleCache[modulePath] end
     local url = REPO_URL .. modulePath .. ".lua?t=" .. tostring(math.random(1000, 9999))
