@@ -236,4 +236,13 @@ GameData.QuestProgression = {
     { Island = "Soul Dominion", Quest = "Quest 17: Mobs", MinLevel = 11500 }
 }
 
+-- 7. Chefões Ocultos, Invocados e Eventos de Tempo (Sem Missão)
+GameData.HiddenBosses = {
+    ["Sailor"] = {"JinwooBoss", "AlucardBoss"},
+    ["Shibuya Station"] = {"YujiBoss", "SukunaBoss", "GojoBoss"},
+    ["Hollow Island"] = {"AizenBoss"},
+    ["Judgement"] = {"YamatoBoss"},
+    ["Boss Island"] = {"SaberBoss", "QinShiBoss", "IchigoBoss", "GilgameshBoss", "BlessedMaidenBoss", "SaberAlterBoss"}
+}
+
 return GameData
