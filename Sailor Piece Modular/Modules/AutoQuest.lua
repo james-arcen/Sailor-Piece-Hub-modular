@@ -253,8 +253,9 @@ function Module:StartFarm()
 
             -- 3. FLUXOGRAMA DE DECISÃO DA MISSÃO
             if not QuestService:HasAnyQuest() then
-                -- NÃO TEM MISSÃO (Só vai no NPC na primeira vez!)
                 CombatService:SetTarget(nil, false)
+                self.FarmTarget = nil
+                    
                 if npc and npc:FindFirstChild("HumanoidRootPart") then
                     TeleportService:FlyToNPC(qNPC)
                     task.wait(0.2)
@@ -266,8 +267,8 @@ function Module:StartFarm()
                 end
 
             elseif not QuestService:IsTracking(qTracker) then
-                -- TEM MISSÃO, MAS É A ERRADA -> Vai no NPC trocar
                 CombatService:SetTarget(nil, false)
+                self.FarmTarget = nil
                 if npc and npc:FindFirstChild("HumanoidRootPart") then
                     TeleportService:FlyToNPC(qNPC)
                     task.wait(0.2)
