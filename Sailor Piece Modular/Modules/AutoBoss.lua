@@ -303,66 +303,55 @@ end
 -- ========================================================================
 function Module:StartFarm()
     self.IsRunning = true
+    self:StopChatSniper()
     self:StartChatSniper()
     CombatService:Start()
-
-    -- Reseta os status quando liga
+    
     self.BossStateCache = {}
     self.DeadTimes = {}
+    self.TargetBossModel = nil
 
     self.BrainLoop = task.spawn(function()
         while self.IsRunning and task.wait() do
             
-            -- Se a fila estiver vazia, solta a prioridade para o AutoFarm rodar!
             if #self.BossQueue == 0 then
+                if self.TargetBossModel then CombatService:SetTarget(nil, false); self.TargetBossModel = nil end
                 PriorityService:Release("AutoBoss")
-                CombatService:SetTarget(nil, false)
                 task.wait(1)
                 continue
             end
 
-            -- 🔥 1. ACORDA OS CHEFES SILENCIOSOS
+            -- Acorda os chefes silenciosos
             for _, b in ipairs(self.BossQueue) do
                 local tName = b.Target
                 if self.BossStateCache[tName] == "Dead" and self.DeadTimes[tName] then
                     local respawnTime = GameData.SilentBosses and GameData.SilentBosses[tName]
-                    if respawnTime then
-                        -- Se o tempo de respawn acabou, marca pra checar de novo
-                        if tick() - self.DeadTimes[tName] > respawnTime then
-                            self.BossStateCache[tName] = "PendingCheck"
-                            self.DeadTimes[tName] = nil
-                        end
+                    if respawnTime and (tick() - self.DeadTimes[tName] > respawnTime) then
+                        self.BossStateCache[tName] = "PendingCheck"
+                        self.DeadTimes[tName] = nil
                     end
                 end
             end
 
-            -- 🔥 2. DECIDE QUEM CAÇAR NA FILA
+            -- Decide quem caçar
             local currentBoss = nil
             for _, b in ipairs(self.BossQueue) do
                 local state = self.BossStateCache[b.Target]
                 if state == nil then state = "PendingCheck" end 
-                
-                if state == "Alive" or state == "PendingCheck" then
-                    currentBoss = b
-                    break
-                end
+                if state == "Alive" or state == "PendingCheck" then currentBoss = b; break end
             end
 
-            -- 🔥 3. CONTROLE INTELIGENTE DE PRIORIDADE
+            -- Controle de Prioridade
             if not currentBoss then
-                -- NENHUM BOSS VIVO! Solta a prioridade para o AutoFarm (XP) assumir!
+                if self.TargetBossModel then CombatService:SetTarget(nil, false); self.TargetBossModel = nil end
                 PriorityService:Release("AutoBoss")
-                CombatService:SetTarget(nil, false)
                 task.wait(1)
                 continue
             else
-                -- TEM BOSS NA ÁREA! Puxa a prioridade máxima!
                 PriorityService:Request("AutoBoss")
             end
 
-            -- Pausa os ataques se um sistema MAIOR (ex: Pity System) estiver rodando
             if PriorityService:GetPermittedTask() ~= "AutoBoss" then
-                CombatService:SetTarget(nil, false)
                 task.wait(1)
                 continue
             end
@@ -371,17 +360,17 @@ function Module:StartFarm()
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
             if not hrp then continue end
             
-            -- 🌍 TELEPORTE INTELIGENTE E SPAWN
+            -- Teleporte Inteligente
             local currentIsland = self:GetCurrentIsland(hrp)
             if currentIsland ~= currentBoss.Island then
-                CombatService:SetTarget(nil, false)
+                if self.TargetBossModel then CombatService:SetTarget(nil, false); self.TargetBossModel = nil end
                 TeleportService:TeleportToIsland(currentBoss.Island)
-                SpawnService.SpawnSetado = false -- Força setar spawn na nova ilha
+                SpawnService.SpawnSetado = false
                 task.wait(1.5)
                 continue
             end
             
-            -- 🛏️ SETAR SPAWN
+            -- Setar Spawn
             if not SpawnService.SpawnSetado then
                 CombatService:SetTarget(nil, false)
                 SpawnService:SetSpawn()
@@ -389,15 +378,16 @@ function Module:StartFarm()
                 continue
             end
             
-            -- 🎯 ATAQUE / VALIDAÇÃO
-            local bossModel = self:GetBossModel(currentBoss.Target)
+            if not self.TargetBossModel or not self.TargetBossModel:FindFirstChild("Humanoid") or self.TargetBossModel.Humanoid.Health <= 0 then
+                self.TargetBossModel = self:GetBossModel(currentBoss.Target)
+            end
             
-            if bossModel then
+            if self.TargetBossModel then
                 self.BossStateCache[currentBoss.Target] = "Alive"
-                CombatService:SetTarget(bossModel, true)
+                CombatService:SetTarget(self.TargetBossModel, true)
             else
-                -- O Bot chegou lá e o bicho não tá? Marca como Morto e solta a prioridade no próximo loop
                 CombatService:SetTarget(nil, false)
+                self.TargetBossModel = nil
                 self.BossStateCache[currentBoss.Target] = "Dead"
                 self.DeadTimes[currentBoss.Target] = tick()
                 task.wait(0.5)
