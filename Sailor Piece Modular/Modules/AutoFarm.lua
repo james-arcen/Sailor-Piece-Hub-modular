@@ -196,16 +196,17 @@ function Module:Start()
 end
 
 function Module:StartFarm()
+    if self.IsRunning then return end 
+    
     self.IsRunning = true
     CombatService:Start()
-
     PriorityService:Request("AutoFarm")
+    if self.BrainLoop then task.cancel(self.BrainLoop); self.BrainLoop = nil end
 
     self.BrainLoop = task.spawn(function()
-        while self.IsRunning and task.wait() do
+        while self.IsRunning and task.wait(1) do
 
             if PriorityService:GetPermittedTask() ~= "AutoFarm" then
-                task.wait(1)
                 continue
             end
 
@@ -218,14 +219,13 @@ function Module:StartFarm()
             if self:NeedsTeleport(hrp, self.SelectedIsland) then
                 CombatService:SetTarget(nil, false) 
                 TeleportService:TeleportToIsland(self.SelectedIsland)
-                task.wait(4)
+                task.wait(1.5)
                 continue
             end
 
             if not SpawnService.SpawnSetado then
                 CombatService:SetTarget(nil, false)
                 SpawnService:SetSpawn()
-                task.wait(1)
                 continue
             end
 
