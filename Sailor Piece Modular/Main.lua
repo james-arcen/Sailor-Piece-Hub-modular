@@ -68,6 +68,8 @@ end
 
 function Core:Start()
     self.UI:Start()
+    local WeaponService = Import("Services/WeaponService")
+    WeaponService:BuildUI("Misc & Config")
     
     for name, module in pairs(self.Modules) do
         if not module.NoToggle then
