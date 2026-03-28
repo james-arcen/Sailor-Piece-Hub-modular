@@ -251,7 +251,7 @@ function Module:StartFarm()
                     if prompt and fireproximityprompt then
                         local oldStyle = prompt.Style
                         prompt.Style = Enum.ProximityPromptStyle.Custom
-                        task.wait(0.1)
+                        task.wait(0.5)
                         pcall(function() fireproximityprompt(prompt) end)
                         task.delay(1.5, function() if prompt then prompt.Style = oldStyle end end)
                         
@@ -269,7 +269,7 @@ function Module:StartFarm()
                     if prompt and fireproximityprompt then
                         local oldStyle = prompt.Style
                         prompt.Style = Enum.ProximityPromptStyle.Custom
-                        task.wait(0.1) -- 🔥 Bypass atualizado
+                        task.wait(0.5)
                         pcall(function() fireproximityprompt(prompt) end)
                         task.delay(1.5, function() if prompt then prompt.Style = oldStyle end end)
                         
