@@ -63,7 +63,10 @@ function SpawnService:SetSpawn()
 
         local prompt = spawnObj:FindFirstChildWhichIsA("ProximityPrompt", true)
         if prompt and fireproximityprompt then
-            fireproximityprompt(prompt)
+            local oldStyle = prompt.Style
+            prompt.Style = Enum.ProximityPromptStyle.Custom
+            pcall(function() fireproximityprompt(prompt) end)
+            task.delay(0.1, function() prompt.Style = oldStyle end)
             task.wait(1) 
             self.SpawnSetado = true
             return true
