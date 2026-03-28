@@ -193,9 +193,6 @@ function Module:Start()
     UI:CreateToggle(tabName, "Auto Farm Mob", function(state)
         self:Toggle(state)
     end)
-    
-    local WeaponService = Import("Services/WeaponService")
-    WeaponService:BuildUI(tabName)
 end
 
 function Module:StartFarm()
