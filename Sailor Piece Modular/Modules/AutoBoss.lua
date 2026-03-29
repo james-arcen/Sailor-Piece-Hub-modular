@@ -12,6 +12,7 @@ local GameData = Import("Config/GameData")
 local CombatService = Import("Services/CombatService")
 local PriorityService = Import("Services/PriorityService")
 local SpawnService = Import("Services/SpawnService")
+local RandomService = Import("Services/RandomService")
 
 local Module = { NoToggle = true }
 
@@ -347,7 +348,7 @@ function Module:StartFarm()
                 if self.TargetBossModel then CombatService:SetTarget(nil, false); self.TargetBossModel = nil end
                 TeleportService:TeleportToIsland(currentBoss.Island)
                 SpawnService.SpawnSetado = false
-                task.wait(1.5)
+                RandomService:Wait(1.0, 2.0)
                 continue
             end
             
@@ -370,7 +371,7 @@ function Module:StartFarm()
                 self.TargetBossModel = nil
                 self.BossStateCache[currentBoss.Target] = "Dead"
                 self.DeadTimes[currentBoss.Target] = tick()
-                task.wait(0.5)
+                RandomService:Wait(0.3, 1.0)
             end
         end
     end)
