@@ -1,5 +1,5 @@
 -- ========================================================================
--- 👑 MÓDULO: AUTO BOSS AVANÇADO (FILA + SNIPER DE CHAT)
+-- 👑 MÓDULO: AUTO BOSS AVANÇADO (FILA + SNIPER DE CHAT + PACIÊNCIA)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -62,19 +62,22 @@ function Module:GetBossModel(targetName)
     local hrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
     if not hrp then return nil end
 
-    local npcsFolder = Workspace:FindFirstChild("NPCs")
-    if not npcsFolder then return nil end
-
     local cleanTarget = targetName:lower():gsub("%s+", "")
 
-    for _, npc in ipairs(npcsFolder:GetChildren()) do
-        local hum = npc:FindFirstChild("Humanoid")
-        local npcBase = npc:FindFirstChild("HumanoidRootPart")
-        if hum and hum.Health > 0 and npcBase then
-            local cleanNpcName = npc.Name:gsub("%d+", ""):lower():gsub("%s+", "")
-            if cleanNpcName == cleanTarget then
-                local dist = (hrp.Position - npcBase.Position).Magnitude
-                if dist < minDist then minDist, closest = dist, npc end
+    for _, folder in ipairs(Workspace:GetChildren()) do
+        if folder.Name == "NPCs" or folder.Name:find("BossSpawn_") or folder.Name:find("TimedBoss") then
+            for _, npc in ipairs(folder:GetDescendants()) do
+                if npc:IsA("Model") then
+                    local hum = npc:FindFirstChild("Humanoid")
+                    local npcBase = npc:FindFirstChild("HumanoidRootPart")
+                    if hum and hum.Health > 0 and npcBase then
+                        local cleanNpcName = npc.Name:gsub("%d+", ""):lower():gsub("%s+", "")
+                        if cleanNpcName == cleanTarget then
+                            local dist = (hrp.Position - npcBase.Position).Magnitude
+                            if dist < minDist then minDist, closest = dist, npc end
+                        end
+                    end
+                end
             end
         end
     end
@@ -295,6 +298,7 @@ function Module:StartFarm()
     self.BossStateCache = {}
     self.DeadTimes = {}
     self.TargetBossModel = nil
+    self.Patience = 0 
 
     if self.BrainLoop then task.cancel(self.BrainLoop); self.BrainLoop = nil end
 
@@ -304,6 +308,7 @@ function Module:StartFarm()
             if #self.BossQueue == 0 then
                 if self.TargetBossModel then CombatService:SetTarget(nil, false); self.TargetBossModel = nil end
                 PriorityService:Release("AutoBoss")
+                self.Patience = 0
                 continue
             end
 
@@ -328,6 +333,7 @@ function Module:StartFarm()
             if not currentBoss then
                 if self.TargetBossModel then CombatService:SetTarget(nil, false); self.TargetBossModel = nil end
                 PriorityService:Release("AutoBoss")
+                self.Patience = 0
                 task.wait(1)
                 continue
             else
@@ -346,9 +352,10 @@ function Module:StartFarm()
             local currentIsland = self:GetCurrentIsland(hrp)
             if currentIsland ~= currentBoss.Island then
                 if self.TargetBossModel then CombatService:SetTarget(nil, false); self.TargetBossModel = nil end
+                self.Patience = 0
                 TeleportService:TeleportToIsland(currentBoss.Island)
                 SpawnService.SpawnSetado = false
-                RandomService:Wait(1.0, 2.0)
+                RandomService:Wait(1.5, 2.5)
                 continue
             end
             
@@ -365,13 +372,22 @@ function Module:StartFarm()
             
             if self.TargetBossModel then
                 self.BossStateCache[currentBoss.Target] = "Alive"
+                self.Patience = 0
                 CombatService:SetTarget(self.TargetBossModel, true)
             else
                 CombatService:SetTarget(nil, false)
                 self.TargetBossModel = nil
-                self.BossStateCache[currentBoss.Target] = "Dead"
-                self.DeadTimes[currentBoss.Target] = tick()
-                RandomService:Wait(0.3, 1.0)
+                self.Patience = self.Patience + 1
+                local maxPatience = (self.BossStateCache[currentBoss.Target] == "Alive") and 10 or 5
+                
+                if self.Patience >= maxPatience then
+                    self.BossStateCache[currentBoss.Target] = "Dead"
+                    self.DeadTimes[currentBoss.Target] = tick()
+                    self.Patience = 0
+                    RandomService:Wait(0.5, 1.0)
+                else
+                    RandomService:Wait(1.0, 1.5)
+                end
             end
         end
     end)
