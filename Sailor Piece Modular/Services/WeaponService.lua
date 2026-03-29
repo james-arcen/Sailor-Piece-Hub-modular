@@ -67,21 +67,26 @@ function WeaponService:BuildUI(tabName)
     -- 🪄 SEÇÃO DE SELEÇÃO DE SKILLS (AUTO SKILL)
     -- ==========================================
     UI:CreateSection(tabName, "🪄 Uso de Habilidades (Auto Skill)")
-    
+
     UI:CreateToggle(tabName, "Usar Skill [Z]", function(state) 
         CombatService.EnabledSkills.Z = state 
+        CombatService.SkillQueue = {}
     end)
     UI:CreateToggle(tabName, "Usar Skill [X]", function(state) 
         CombatService.EnabledSkills.X = state 
+        CombatService.SkillQueue = {}
     end)
     UI:CreateToggle(tabName, "Usar Skill [C]", function(state) 
         CombatService.EnabledSkills.C = state 
+        CombatService.SkillQueue = {}
     end)
     UI:CreateToggle(tabName, "Usar Skill [V]", function(state) 
         CombatService.EnabledSkills.V = state 
+        CombatService.SkillQueue = {}
     end)
     UI:CreateToggle(tabName, "Usar Skill [F]", function(state) 
         CombatService.EnabledSkills.F = state 
+        CombatService.SkillQueue = {}
     end)
 
     -- ==========================================
@@ -130,7 +135,6 @@ function WeaponService:BuildUI(tabName)
             distanceInput.Text = tostring(CombatService.AttackDistance or 6) 
         end
     end)
-
 
     -- ==========================================
     -- 🗡️ SEÇÃO DE ARMAS
