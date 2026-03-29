@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🍀 MÓDULO: AUTO PITY (SNIPER DE ITEM GARANTIDO)
+-- 🍀 MÓDULO: AUTO PITY (INTEGRAÇÃO COM DIFICULDADES)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -29,37 +29,42 @@ function Module:Init()
     
     for island, quests in pairs(GameData.QuestDataMap) do
         for _, q in ipairs(quests) do
-            if q.Type == "Boss" then table.insert(self.AllBosses, { Target = q.Target, Island = island, Type = "Normal" }) end
+            table.insert(self.AllBosses, { Target = q.Target, Island = island, Type = "Normal", RequiresDifficulty = false }) 
         end
     end
     if GameData.TimedBosses then
         for island, bosses in pairs(GameData.TimedBosses) do
-            for _, bossName in ipairs(bosses) do table.insert(self.AllBosses, { Target = bossName, Island = island, Type = "Timed" }) end
+            for _, bossName in ipairs(bosses) do 
+                table.insert(self.AllBosses, { Target = bossName, Island = island, Type = "Timed", RequiresDifficulty = false }) 
+            end
         end
     end
-  
+    
     if GameData.SummonBosses then
-        for _, bossName in ipairs(GameData.SummonBosses) do
-            table.insert(self.AllBosses, { Target = bossName, Island = "Boss Island", Type = "Summon" })
+        for islandName, rules in pairs(GameData.SummonBosses) do
+            for _, bossName in ipairs(rules.Bosses) do
+                table.insert(self.AllBosses, { 
+                    Target = bossName, 
+                    Island = islandName, 
+                    Type = "Summon",
+                    RequiresDifficulty = rules.RequiresDifficulty,
+                    Difficulties = rules.Difficulties,
+                    SummonRemote = rules.SummonRemote,
+                    AutoRemote = rules.AutoRemote
+                })
+            end
         end
     end
 
     self.SelectedPityBoss = self.AllBosses[1]
+    self.SelectedDifficulty = "Padrão"
     self.LastSummonState = false
-    
-    pcall(function()
-        local remotes = ReplicatedStorage:WaitForChild("Remotes", 3)
-        if remotes then
-            self.SummonRemote = remotes:WaitForChild("RequestSummonBoss", 3)
-            self.AutoSpawnRemote = remotes:WaitForChild("RequestAutoSpawn", 3)
-        end
-    end)
+    self.RemotesFolder = ReplicatedStorage:WaitForChild("Remotes", 5)
 end
 
 function Module:ReadPityFromScreen()
     local pg = LP:FindFirstChild("PlayerGui")
     if not pg then return nil, nil end
-    
     local pityUI = pg:FindFirstChild("Pity", true)
     
     if pityUI and pityUI:IsA("TextLabel") then
@@ -91,7 +96,6 @@ function Module:GetBossModel(targetName)
     local closest, minDist = nil, math.huge
     local hrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
     if not hrp then return nil end
-
     local cleanTarget = targetName:lower():gsub("%s+", "")
 
     for _, folder in ipairs(Workspace:GetChildren()) do
@@ -114,9 +118,6 @@ function Module:GetBossModel(targetName)
     return closest
 end
 
--- ==========================================
--- 🖥️ INTERFACE (Aba: Gacha & Itens)
--- ==========================================
 local function CreateDynamicDropdown(container, defaultText, options, callback)
     local dropdownFrame = Instance.new("Frame")
     dropdownFrame.Size = UDim2.new(1, -10, 0, 35)
@@ -205,7 +206,7 @@ function Module:Start()
     self.PityLabelUI.TextColor3 = Color3.fromRGB(255, 215, 0)
     self.PityLabelUI.Font = Enum.Font.GothamBlack
     self.PityLabelUI.TextSize = 14
-    self.PityLabelUI.Text = "Pity Atual: ?/25 (Vá bater em um boss para atualizar)"
+    self.PityLabelUI.Text = "Pity Atual: ?/25 (Vá bater em um boss)"
     self.PityLabelUI.Parent = container
 
     local filterOptions = { "Todas as Ilhas" }
@@ -214,6 +215,7 @@ function Module:Start()
     local currentFilter = "Todas as Ilhas"
     local filteredBosses = {}
     local bossDropdown
+    local diffDropdown
 
     local function UpdateFilteredBosses()
         filteredBosses = {}
@@ -230,15 +232,42 @@ function Module:Start()
         currentFilter = island
         UpdateFilteredBosses()
         if bossDropdown then bossDropdown.Refresh(filteredBosses, "🎯 Boss do Pity: " .. (self.SelectedPityBoss and self.SelectedPityBoss.Target or "Nenhum")) end
+        
+        if diffDropdown and self.SelectedPityBoss then
+            local diffs = self.SelectedPityBoss.RequiresDifficulty and self.SelectedPityBoss.Difficulties or {"Padrão"}
+            self.SelectedDifficulty = diffs[1]
+            diffDropdown.Refresh(diffs, "🔥 Dificuldade: " .. self.SelectedDifficulty)
+        end
     end)
 
     bossDropdown = CreateDynamicDropdown(container, "🎯 Boss do Pity: " .. (self.SelectedPityBoss and self.SelectedPityBoss.Target or "Nenhum"), filteredBosses, function(boss)
         self.SelectedPityBoss = boss
+        if diffDropdown then
+            local diffs = boss.RequiresDifficulty and boss.Difficulties or {"Padrão"}
+            self.SelectedDifficulty = diffs[1]
+            diffDropdown.Refresh(diffs, "🔥 Dificuldade: " .. self.SelectedDifficulty)
+        end
+    end)
+    
+    diffDropdown = CreateDynamicDropdown(container, "🔥 Dificuldade: " .. self.SelectedDifficulty, {"Padrão"}, function(diff)
+        self.SelectedDifficulty = diff
     end)
 
     UI:CreateToggle(tabName, "Ligar Auto Pity (Vigia Invisível)", function(state)
         self:Toggle(state)
     end)
+end
+
+function Module:FirePityRemote(remoteName)
+    if not self.RemotesFolder or not self.SelectedPityBoss then return end
+    local remote = self.RemotesFolder:FindFirstChild(remoteName)
+    if remote then
+        if self.SelectedPityBoss.RequiresDifficulty then
+            pcall(function() remote:FireServer(self.SelectedPityBoss.Target, self.SelectedDifficulty) end)
+        else
+            pcall(function() remote:FireServer(self.SelectedPityBoss.Target) end)
+        end
+    end
 end
 
 function Module:StartFarm()
@@ -256,15 +285,11 @@ function Module:StartFarm()
             if cur and max then
                 self.LastPity = cur
                 self.MaxPity = max
-                if self.PityLabelUI then
-                    self.PityLabelUI.Text = "Pity Atual: " .. cur .. "/" .. max
-                end
+                if self.PityLabelUI then self.PityLabelUI.Text = "Pity Atual: " .. cur .. "/" .. max end
             end
 
             if self.LastPity >= (self.MaxPity - 1) then
-                
                 PriorityService:Request("PitySystem")
-                
                 if PriorityService:GetPermittedTask() ~= "PitySystem" then continue end
 
                 local char = LP.Character
@@ -291,8 +316,8 @@ function Module:StartFarm()
                 end
 
                 if targetData.Type == "Summon" then
-                    if self.AutoSpawnRemote and not self.LastSummonState then
-                        pcall(function() self.AutoSpawnRemote:FireServer(targetData.Target) end)
+                    if targetData.AutoRemote and not self.LastSummonState then
+                        self:FirePityRemote(targetData.AutoRemote)
                         self.LastSummonState = true
                     end
                 end
@@ -307,12 +332,10 @@ function Module:StartFarm()
                 else
                     CombatService:SetTarget(nil, false)
                     self.TargetBossModel = nil
-                    
                     self.Patience = self.Patience + 1
+                    
                     if targetData.Type == "Summon" and self.Patience >= 3 then
-                        if self.SummonRemote then
-                            pcall(function() self.SummonRemote:FireServer(targetData.Target) end)
-                        end
+                        if targetData.SummonRemote then self:FirePityRemote(targetData.SummonRemote) end
                         self.Patience = 0
                         RandomService:Wait(1.0, 2.0)
                     else
@@ -328,8 +351,8 @@ function Module:StartFarm()
                     self.TargetBossModel = nil
                 end
                 
-                if self.LastSummonState and self.AutoSpawnRemote then
-                    pcall(function() self.AutoSpawnRemote:FireServer(self.SelectedPityBoss.Target) end)
+                if self.LastSummonState and self.SelectedPityBoss and self.SelectedPityBoss.AutoRemote then
+                    self:FirePityRemote(self.SelectedPityBoss.AutoRemote)
                     self.LastSummonState = false
                 end
             end
@@ -343,8 +366,8 @@ function Module:StopFarm()
     CombatService:Stop()
     PriorityService:Release("PitySystem")
     
-    if self.LastSummonState and self.AutoSpawnRemote and self.SelectedPityBoss then
-        pcall(function() self.AutoSpawnRemote:FireServer(self.SelectedPityBoss.Target) end)
+    if self.LastSummonState and self.SelectedPityBoss and self.SelectedPityBoss.AutoRemote then
+        self:FirePityRemote(self.SelectedPityBoss.AutoRemote)
         self.LastSummonState = false
     end
 end
