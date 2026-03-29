@@ -57,12 +57,12 @@ function SpawnService:SetSpawn()
 
     if targetPart then
         TeleportService:FlyTo(targetPart.Position + Vector3.new(0, 3, 0))
-        task.wait(1)
+        RandomService:Wait(0.5, 1.5)
 
         local prompt = spawnObj:FindFirstChildWhichIsA("ProximityPrompt", true)
         if prompt and fireproximityprompt then
             pcall(function() fireproximityprompt(prompt) end)
-            task.wait(1) 
+            RandomService:Wait(0.5, 1.0)
             self.SpawnSetado = true
             return true
         end
