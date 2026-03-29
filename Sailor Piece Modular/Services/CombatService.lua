@@ -1,5 +1,5 @@
 -- ========================================================================
--- ⚔️ SERVIÇO: COMBAT SERVICE (O MÚSCULO DO HUB) - MODO VOO SUAVE (ANTI-CRASH)
+-- ⚔️ SERVIÇO: COMBAT SERVICE (O MÚSCULO DO HUB) - MODO DINÂMICO
 -- ========================================================================
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -11,10 +11,11 @@ local WeaponService = Import("Services/WeaponService")
 local CombatService = {
     IsActive = false,
     Target = nil,
-    UseOrbit = false,
     OrbitAngle = 0,
     MoveLoop = nil,
     AttackLoop = nil,
+    AttackPosition = "Atrás",
+    AttackDistance = 6,
     SkillQueue = {},
     LastSkillTime = 0,
     ThrottleDelay = 0.2,
@@ -27,20 +28,6 @@ function CombatService:Init()
     self.FruitRemote = pcall(function() return ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("FruitPowerRemote") end) and ReplicatedStorage.RemoteEvents.FruitPowerRemote or nil
 end
 
-function CombatService:EquipFirstWeapon()
-    local char = LP.Character
-    if not char then return nil end
-    local tool = char:FindFirstChildOfClass("Tool")
-    if not tool then
-        local backpack = LP:FindFirstChild("Backpack")
-        if backpack then 
-            tool = backpack:FindFirstChildOfClass("Tool")
-            if tool then tool.Parent = char end 
-        end
-    end
-    return tool and tool.Name or nil
-end
-
 function CombatService:CancelTween()
     if self.CurrentTween then
         pcall(function() self.CurrentTween:Cancel() end)
@@ -48,18 +35,14 @@ function CombatService:CancelTween()
     end
 end
 
-function CombatService:SetTarget(targetEntity, useOrbit)
-    if self.Target ~= targetEntity then
-        self:CancelTween()
-    end
+function CombatService:SetTarget(targetEntity)
+    if self.Target ~= targetEntity then self:CancelTween() end
     self.Target = targetEntity
-    self.UseOrbit = useOrbit
 end
 
 function CombatService:Start()
     if self.IsActive then return end
     self.IsActive = true
-    
     self.SkillQueue = {}
     self.LastSkillTime = 0
 
@@ -75,12 +58,23 @@ function CombatService:Start()
                     hum.PlatformStand = true
                     hrp.Velocity = Vector3.zero
                     
+                    local distConfig = self.AttackDistance
                     local pos
-                    if self.UseOrbit then
+                    local mode = self.AttackPosition
+                    
+                    if mode == "Orbital" then
                         self.OrbitAngle = self.OrbitAngle + math.rad(15)
-                        pos = targetHrp.Position + Vector3.new(math.cos(self.OrbitAngle) * 8, 5, math.sin(self.OrbitAngle) * 8)
+                        pos = targetHrp.Position + Vector3.new(math.cos(self.OrbitAngle) * distConfig, 5, math.sin(self.OrbitAngle) * distConfig)
+                    elseif mode == "Frente" then
+                        pos = targetHrp.Position + (targetHrp.CFrame.LookVector * distConfig) + Vector3.new(0, 5, 0)
+                    elseif mode == "Acima" then
+                        pos = targetHrp.Position + Vector3.new(0, distConfig + 5, 0)
+                    elseif mode == "Abaixo" then
+                        pos = targetHrp.Position + Vector3.new(0, -distConfig - 2, 0)
+                    elseif mode == "Diagonal" then
+                        pos = targetHrp.Position + (targetHrp.CFrame.LookVector * -distConfig) + (targetHrp.CFrame.RightVector * distConfig) + Vector3.new(0, 5, 0)
                     else
-                        pos = targetHrp.Position - (targetHrp.CFrame.LookVector * 6) + Vector3.new(0, 6, 0)
+                        pos = targetHrp.Position - (targetHrp.CFrame.LookVector * distConfig) + Vector3.new(0, 5, 0)
                     end
                     
                     local targetCFrame = CFrame.new(pos, targetHrp.Position)
@@ -88,10 +82,7 @@ function CombatService:Start()
                     
                     if dist > 15 then
                         if not self.CurrentTween or self.CurrentTween.PlaybackState ~= Enum.PlaybackState.Playing then
-                            local tempo = dist / 150
-                            if tempo < 0.1 then tempo = 0.1 end
-                            
-                            self.CurrentTween = TweenService:Create(hrp, TweenInfo.new(tempo, Enum.EasingStyle.Linear), {CFrame = targetCFrame})
+                            self.CurrentTween = TweenService:Create(hrp, TweenInfo.new(dist/150, Enum.EasingStyle.Linear), {CFrame = targetCFrame})
                             self.CurrentTween:Play()
                         end
                     else
@@ -107,51 +98,24 @@ function CombatService:Start()
     end)
 
     self.AttackLoop = task.spawn(function()
-        local skillPairs = {
-            {Fruit = Enum.KeyCode.Z, Melee = 1},
-            {Fruit = Enum.KeyCode.X, Melee = 2},
-            {Fruit = Enum.KeyCode.C, Melee = 3},
-            {Fruit = Enum.KeyCode.V, Melee = 4}
-        }
-
+        local skillPairs = {{Fruit = Enum.KeyCode.Z, Melee = 1},{Fruit = Enum.KeyCode.X, Melee = 2},{Fruit = Enum.KeyCode.C, Melee = 3},{Fruit = Enum.KeyCode.V, Melee = 4}}
         while self.IsActive and task.wait(0.1) do
             if self.Target and self.Target:FindFirstChild("Humanoid") and self.Target.Humanoid.Health > 0 then
-                
                 if self.CombatRemote then pcall(function() self.CombatRemote:FireServer() end) end
-                
                 if tick() - self.LastSkillTime >= self.ThrottleDelay then
                     if #self.SkillQueue > 0 then
                         local currentPair = table.remove(self.SkillQueue, 1)
                         local weaponsToUse = WeaponService.SelectedWeapons
-                        
-                        if #weaponsToUse == 0 then
-                            local wName = self:EquipFirstWeapon()
+                        for _, wName in ipairs(#weaponsToUse > 0 and weaponsToUse or {CombatService:EquipFirstWeapon()}) do
                             if wName then
-                                if self.FruitRemote then
-                                    pcall(function() self.FruitRemote:FireServer("UseAbility", {["KeyCode"] = currentPair.Fruit, ["FruitPower"] = wName}) end)
-                                end
-                                if self.AbilityRemote then 
-                                    pcall(function() self.AbilityRemote:FireServer(currentPair.Melee) end) 
-                                end
-                            end
-                        else
-                            for _, wName in ipairs(weaponsToUse) do
                                 WeaponService:EquipWeapon(wName)
-                                
-                                if self.FruitRemote then
-                                    pcall(function() self.FruitRemote:FireServer("UseAbility", {["KeyCode"] = currentPair.Fruit, ["FruitPower"] = wName}) end)
-                                end
-                                if self.AbilityRemote then 
-                                    pcall(function() self.AbilityRemote:FireServer(currentPair.Melee) end) 
-                                end
+                                if self.FruitRemote then pcall(function() self.FruitRemote:FireServer("UseAbility", {["KeyCode"] = currentPair.Fruit, ["FruitPower"] = wName}) end) end
+                                if self.AbilityRemote then pcall(function() self.AbilityRemote:FireServer(currentPair.Melee) end) end
                             end
                         end
-                        
                         self.LastSkillTime = tick()
                     else
-                        for i = 1, 4 do
-                            table.insert(self.SkillQueue, skillPairs[i])
-                        end
+                        for i = 1, 4 do table.insert(self.SkillQueue, skillPairs[i]) end
                     end
                 end
             end
@@ -160,16 +124,10 @@ function CombatService:Start()
 end
 
 function CombatService:Stop()
-    self.IsActive = false
-    self.Target = nil
-    self.SkillQueue = {}
-    self:CancelTween()
-    
+    self.IsActive = false; self.Target = nil; self.SkillQueue = {}; self:CancelTween()
     if self.MoveLoop then task.cancel(self.MoveLoop); self.MoveLoop = nil end
     if self.AttackLoop then task.cancel(self.AttackLoop); self.AttackLoop = nil end
-    
-    local char = LP.Character
-    local hum = char and char:FindFirstChild("Humanoid")
+    local char = LP.Character; local hum = char and char:FindFirstChild("Humanoid")
     if hum then hum.PlatformStand = false end
 end
 
