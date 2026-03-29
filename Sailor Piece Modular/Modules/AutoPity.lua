@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🍀 MÓDULO: AUTO PITY (INTEGRAÇÃO COM DIFICULDADES)
+-- 🍀 MÓDULO: AUTO PITY (COM RENDERIZAÇÃO E HIERARQUIA FIXA)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -50,7 +50,9 @@ function Module:Init()
                     RequiresDifficulty = rules.RequiresDifficulty,
                     Difficulties = rules.Difficulties,
                     SummonRemote = rules.SummonRemote,
-                    AutoRemote = rules.AutoRemote
+                    AutoRemote = rules.AutoRemote,
+                    SummonNPC = rules.SummonNPC,
+                    SpawnFolders = rules.SpawnFolders
                 })
             end
         end
@@ -149,7 +151,6 @@ local function CreateDynamicDropdown(container, defaultText, options, callback)
     listLayout.Parent = optionsContainer
 
     local isOpen = false
-
     mainBtn.MouseButton1Click:Connect(function()
         isOpen = not isOpen
         mainBtn.Text = defaultText .. (isOpen and " ▲" or " ▼")
@@ -184,15 +185,8 @@ local function CreateDynamicDropdown(container, defaultText, options, callback)
         task.wait(0.1)
         optionsContainer.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y)
     end
-
     populate(options)
-    return {
-        Refresh = function(newOptions, resetText)
-            defaultText = resetText
-            mainBtn.Text = defaultText .. " ▼"
-            populate(newOptions)
-        end
-    }
+    return { Refresh = function(newOptions, resetText) defaultText = resetText; mainBtn.Text = defaultText .. " ▼"; populate(newOptions) end }
 end
 
 function Module:Start()
@@ -332,9 +326,30 @@ function Module:StartFarm()
                 else
                     CombatService:SetTarget(nil, false)
                     self.TargetBossModel = nil
+                    
+                    -- 🔥 FLUXO DE RENDERIZAÇÃO
+                    local spawnFolderName = targetData.SpawnFolders and targetData.SpawnFolders[targetData.Target]
+                    if spawnFolderName then
+                        local spawnZone = Workspace:FindFirstChild(spawnFolderName)
+                        if spawnZone then
+                            local targetPos = spawnZone:IsA("BasePart") and spawnZone.Position or (spawnZone:IsA("Model") and spawnZone.PrimaryPart and spawnZone.PrimaryPart.Position)
+                            if not targetPos then
+                                local p = spawnZone:FindFirstChildWhichIsA("BasePart", true)
+                                if p then targetPos = p.Position end
+                            end
+                            if targetPos and (hrp.Position - targetPos).Magnitude > 50 then
+                                TeleportService:FlyTo(targetPos + Vector3.new(0, 30, 0))
+                            end
+                        end
+                    end
+
                     self.Patience = self.Patience + 1
                     
-                    if targetData.Type == "Summon" and self.Patience >= 3 then
+                    if targetData.Type == "Summon" and self.Patience >= 5 then
+                        if targetData.SummonNPC then
+                            TeleportService:FlyToNPC(targetData.SummonNPC)
+                            task.wait(1)
+                        end
                         if targetData.SummonRemote then self:FirePityRemote(targetData.SummonRemote) end
                         self.Patience = 0
                         RandomService:Wait(1.0, 2.0)
