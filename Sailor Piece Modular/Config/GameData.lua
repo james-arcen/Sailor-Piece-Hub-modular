@@ -280,6 +280,7 @@ GameData.SummonBosses = {
         RequiresDifficulty = true,
         Difficulties = {"Normal", "Medium", "Hard", "Extreme"},
         SummonNPC = "StrongestBossSummonerNPC",
+        SummonPosition = Vector3.new(392, -3, -2178),
         SpawnFolders = {
             ["StrongestToday"] = "BossSpawn_StrongestToday",
             ["StrongestHistory"] = "BossSpawn_StrongestHistory"
