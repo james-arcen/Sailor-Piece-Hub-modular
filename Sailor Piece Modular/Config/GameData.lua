@@ -255,23 +255,31 @@ GameData.SilentBosses = {
 -- ========================================================================
 -- 🗣️ TRADUTOR DO SNIPER DE CHAT (Target -> Nome no Chat)
 -- ========================================================================
-GameData.BossChatNames = {
-    ["JinwooBoss"] = "Solo Hunter",
-    ["AlucardBoss"] = "Vampire King",
-    ["YujiBoss"] = "Cursed Vessel",
-    ["SukunaBoss"] = "Cursed King",
-    ["GojoBoss"] = "Limitless Sorcerer",
-    ["AizenBoss"] = "Manipulator",
-    ["YamatoBoss"] = "Yamato"
-}
-
 GameData.SummonBosses = {
-    "SaberBoss", 
-    "QinShiBoss", 
-    "IchigoBoss", 
-    "GilgameshBoss", 
-    "BlessedMaidenBoss", 
-    "SaberAlterBoss"
+    ["Boss Island"] = {
+        SummonRemote = "RequestSummonBoss",
+        AutoRemote = "RequestAutoSpawn",
+        RequiresDifficulty = false,
+        Difficulties = {"Padrão"},
+        Bosses = {
+            "SaberBoss", 
+            "QinShiBoss", 
+            "IchigoBoss", 
+            "GilgameshBoss", 
+            "BlessedMaidenBoss", 
+            "SaberAlterBoss"
+        }
+    },
+    ["Shinjuku"] = {
+        SummonRemote = "RequestSpawnStrongestBoss",
+        AutoRemote = "RequestAutoSpawnStrongest",
+        RequiresDifficulty = true,
+        Difficulties = {"Normal", "Medium", "Hard", "Extreme"},
+        Bosses = {
+            "StrongestToday", 
+            "StrongestHistory"
+        }
+    }
 }
 
 return GameData
