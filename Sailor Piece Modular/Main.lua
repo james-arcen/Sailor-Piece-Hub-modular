@@ -66,6 +66,10 @@ local AutoSummonModule = Import("Modules/AutoSummon")
 Core:RegisterModule("Auto Summon Boss", "Chefes (Boss)", AutoSummonModule)
 task.wait(1.1)
 
+local AutoPityModule = Import("Modules/AutoPity")
+Core:RegisterModule("Auto Pity (Garantido)", "Gacha & Itens", AutoPityModule)
+task.wait(1.3)
+
 function Core:Init()
     self.UI:Init(Config)
     
