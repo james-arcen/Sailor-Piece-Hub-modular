@@ -265,4 +265,13 @@ GameData.BossChatNames = {
     ["YamatoBoss"] = "Yamato"
 }
 
+GameData.SummonBosses = {
+    "SaberBoss", 
+    "QinShiBoss", 
+    "IchigoBoss", 
+    "GilgameshBoss", 
+    "BlessedMaidenBoss", 
+    "SaberAlterBoss"
+}
+
 return GameData
