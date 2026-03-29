@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🔮 MÓDULO: AUTO SUMMON BOSS (RENDERIZAÇÃO FORÇADA)
+-- 🔮 MÓDULO: AUTO SUMMON BOSS (MULT-ILHAS, DIFICULDADES E RENDERIZAÇÃO)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -55,20 +55,28 @@ function Module:GetBossModel(targetName)
     if not hrp then return nil end
     local cleanTarget = targetName:lower():gsub("%s+", "")
 
-    for _, folder in ipairs(Workspace:GetChildren()) do
-        if folder.Name == "NPCs" or folder.Name:find("BossSpawn_") or folder.Name:find("TimedBoss") then
-            for _, npc in ipairs(folder:GetDescendants()) do
-                if npc:IsA("Model") then
-                    local hum = npc:FindFirstChild("Humanoid")
-                    local npcBase = npc:FindFirstChild("HumanoidRootPart")
-                    if hum and hum.Health > 0 and npcBase then
-                        local cleanNpcName = npc.Name:gsub("%d+", ""):lower():gsub("%s+", "")
-                        if cleanNpcName == cleanTarget then
-                            local dist = (hrp.Position - npcBase.Position).Magnitude
-                            if dist < minDist then minDist, closest = dist, npc end
-                        end
-                    end
+    local function CheckNPC(npc)
+        if npc:IsA("Model") then
+            local hum = npc:FindFirstChild("Humanoid")
+            local npcBase = npc:FindFirstChild("HumanoidRootPart")
+            if hum and hum.Health > 0 and npcBase then
+                local cleanNpcName = npc.Name:gsub("%d+", ""):lower():gsub("%s+", "")
+                if cleanNpcName == cleanTarget or cleanNpcName:find(cleanTarget) then
+                    local dist = (hrp.Position - npcBase.Position).Magnitude
+                    if dist < minDist then minDist = dist; closest = npc end
                 end
+            end
+        end
+    end
+
+    for _, folder in ipairs(Workspace:GetChildren()) do
+        if folder.Name:find("BossSpawn_") or folder.Name:lower():find(cleanTarget) then
+            CheckNPC(folder)
+        end
+        
+        if folder.Name == "NPCs" or folder.Name:find("TimedBoss") then
+            for _, npc in ipairs(folder:GetDescendants()) do
+                CheckNPC(npc)
             end
         end
     end
@@ -245,33 +253,34 @@ function Module:StartFarm()
             else
                 CombatService:SetTarget(nil, false)
                 self.TargetBossModel = nil
-
-                local spawnFolderName = self.CurrentIslandRules.SpawnFolders and self.CurrentIslandRules.SpawnFolders[self.SelectedSummonBoss]
-                if spawnFolderName then
-                    local spawnZone = Workspace:FindFirstChild(spawnFolderName)
-                    if spawnZone then
-                        local targetPos = spawnZone:IsA("BasePart") and spawnZone.Position or (spawnZone:IsA("Model") and spawnZone.PrimaryPart and spawnZone.PrimaryPart.Position)
-                        if not targetPos then
-                            local p = spawnZone:FindFirstChildWhichIsA("BasePart", true)
-                            if p then targetPos = p.Position end
-                        end
-                        if targetPos and (hrp.Position - targetPos).Magnitude > 50 then
-                            TeleportService:FlyTo(targetPos + Vector3.new(0, 30, 0))
-                        end
-                    end
-                end
-
                 self.Patience = self.Patience + 1
                 
                 if self.Patience >= 5 then
-                    if self.CurrentIslandRules.SummonNPC then
+                    
+                    if self.CurrentIslandRules.SummonPosition then
+                        TeleportService:FlyTo(self.CurrentIslandRules.SummonPosition)
+                        task.wait(1.5)
+                    elseif self.CurrentIslandRules.SummonNPC then
                         TeleportService:FlyToNPC(self.CurrentIslandRules.SummonNPC)
-                        task.wait(1)
+                        task.wait(1.5)
                     end
                     
                     self:FireRemote(self.CurrentIslandRules.SummonRemote)
                     self.Patience = 0
                     RandomService:Wait(1.0, 2.0)
+                    
+                    local spawnFolderName = self.CurrentIslandRules.SpawnFolders and self.CurrentIslandRules.SpawnFolders[self.SelectedSummonBoss]
+                    if spawnFolderName then
+                        local spawnZone = Workspace:FindFirstChild(spawnFolderName)
+                        if spawnZone then
+                            local targetPos = spawnZone:IsA("BasePart") and spawnZone.Position or (spawnZone:IsA("Model") and spawnZone.PrimaryPart and spawnZone.PrimaryPart.Position)
+                            if not targetPos then
+                                local p = spawnZone:FindFirstChildWhichIsA("BasePart", true)
+                                if p then targetPos = p.Position end
+                            end
+                            if targetPos then TeleportService:FlyTo(targetPos + Vector3.new(0, 30, 0)) end
+                        end
+                    end
                 end
             end
         end
