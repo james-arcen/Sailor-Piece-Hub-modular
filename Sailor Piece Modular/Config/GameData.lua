@@ -42,7 +42,8 @@ GameData.NpcList = {
     "Katana", 
     "MadokaBuyer", 
     "HakiQuestNPC", 
-    "SummonBossNPC"
+    "SummonBossNPC",
+    "StrongestBossSummonerNPC"
 }
 
 -- 4. Banco de Dados de Missões por Ilha
