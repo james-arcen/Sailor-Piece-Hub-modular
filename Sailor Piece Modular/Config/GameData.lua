@@ -221,7 +221,8 @@ GameData.NpcToIsland = {
     ["QuestNPC15"] = "Academy",
     ["QuestNPC16"] = "Judgement",
     ["QuestNPC17"] = "Soul Dominion",
-    ["SummonBossNPC"] = "Boss Island"
+    ["SummonBossNPC"] = "Boss Island",
+    ["StrongestBossSummonerNPC"] = "Shinjuku"
 }
 
 -- 6. Progressão do Piloto Automático (Usaremos no próximo módulo!)
