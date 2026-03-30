@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🔮 MÓDULO: AUTO SUMMON BOSS (ESPERA INTELIGENTE E ANTI-VOO REDUNDANTE)
+-- 🔮 MÓDULO: AUTO SUMMON BOSS (FLUXO ESTRITO E RENDERIZAÇÃO FORÇADA)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -196,11 +196,6 @@ function Module:StartFarm()
     CombatService:Start()
     PriorityService:Request("AutoSummon")
 
-    if not self.LastSummonState then
-        self:FireRemote(self.CurrentIslandRules.AutoRemote)
-        self.LastSummonState = true
-    end
-
     if self.BrainLoop then task.cancel(self.BrainLoop); self.BrainLoop = nil end
 
     self.BrainLoop = task.spawn(function()
@@ -213,12 +208,6 @@ function Module:StartFarm()
                 end
                 task.wait(1)
                 continue
-            end
-
-            if not self.LastSummonState then
-                self:FireRemote(self.CurrentIslandRules.AutoRemote)
-                self.LastSummonState = true
-                RandomService:Wait(1.0, 2.0) 
             end
 
             local char = LP.Character
@@ -252,55 +241,64 @@ function Module:StartFarm()
             else
                 CombatService:SetTarget(nil, false)
                 self.TargetBossModel = nil
-                self.Patience = self.Patience + 1
-                
-                if self.Patience >= 5 then
-                    if self.LastSummonState and self.CurrentIslandRules.AutoRemote then
+
+                -- 📍 PASSO 1: Encontrar e ir até o NPC de invocação
+                local npcPos = self.CurrentIslandRules.SummonPosition
+                if not npcPos and self.CurrentIslandRules.SummonNPC then
+                    local svcFolder = Workspace:FindFirstChild("ServiceNPCs")
+                    local npcModel = svcFolder and svcFolder:FindFirstChild(self.CurrentIslandRules.SummonNPC)
+                    if npcModel and npcModel:FindFirstChild("HumanoidRootPart") then
+                        npcPos = npcModel.HumanoidRootPart.Position
+                    end
+                end
+
+                -- 📍 PASSO 2: Lógica de Invocação Estrita
+                local needsToSummon = false
+                if self.CurrentIslandRules.AutoRemote and not self.LastSummonState then
+                    needsToSummon = true
+                elseif not self.CurrentIslandRules.AutoRemote then
+                    self.Patience = self.Patience + 1
+                    if self.Patience >= 4 then
+                        needsToSummon = true
                         self.Patience = 0
-                        local spawnFolderName = self.CurrentIslandRules.SpawnFolders and self.CurrentIslandRules.SpawnFolders[self.SelectedSummonBoss]
-                        if spawnFolderName then
-                            local spawnZone = Workspace:FindFirstChild(spawnFolderName)
-                            if spawnZone then
-                                local targetPos = spawnZone:IsA("BasePart") and spawnZone.Position or (spawnZone:IsA("Model") and spawnZone.PrimaryPart and spawnZone.PrimaryPart.Position)
-                                if not targetPos then
-                                    local p = spawnZone:FindFirstChildWhichIsA("BasePart", true)
-                                    if p then targetPos = p.Position end
-                                end
-                                if targetPos and (hrp.Position - targetPos).Magnitude > 30 then
-                                    TeleportService:FlyTo(targetPos + Vector3.new(0, 30, 0))
-                                end
-                            end
-                        end
+                    end
+                end
+
+                if needsToSummon then
+                    if npcPos and (hrp.Position - npcPos).Magnitude > 50 then
+                        TeleportService:FlyTo(npcPos)
+                        task.wait(0.8)
+                        continue
                     else
-                        if self.CurrentIslandRules.SummonPosition then
-                            if (hrp.Position - self.CurrentIslandRules.SummonPosition).Magnitude > 20 then
-                                TeleportService:FlyTo(self.CurrentIslandRules.SummonPosition)
-                                task.wait(1.5)
-                            end
-                        elseif self.CurrentIslandRules.SummonNPC then
-                            TeleportService:FlyToNPC(self.CurrentIslandRules.SummonNPC)
-                            task.wait(1.5)
+                        if self.CurrentIslandRules.AutoRemote and not self.LastSummonState then
+                            self:FireRemote(self.CurrentIslandRules.AutoRemote)
+                            self.LastSummonState = true
+                        else
+                            self:FireRemote(self.CurrentIslandRules.SummonRemote)
                         end
-                        
-                        self:FireRemote(self.CurrentIslandRules.SummonRemote)
-                        self.Patience = 0
                         RandomService:Wait(1.0, 2.0)
-                        
-                        local spawnFolderName = self.CurrentIslandRules.SpawnFolders and self.CurrentIslandRules.SpawnFolders[self.SelectedSummonBoss]
-                        if spawnFolderName then
-                            local spawnZone = Workspace:FindFirstChild(spawnFolderName)
-                            if spawnZone then
-                                local targetPos = spawnZone:IsA("BasePart") and spawnZone.Position or (spawnZone:IsA("Model") and spawnZone.PrimaryPart and spawnZone.PrimaryPart.Position)
-                                if not targetPos then
-                                    local p = spawnZone:FindFirstChildWhichIsA("BasePart", true)
-                                    if p then targetPos = p.Position end
-                                end
-                                if targetPos and (hrp.Position - targetPos).Magnitude > 30 then 
-                                    TeleportService:FlyTo(targetPos + Vector3.new(0, 30, 0)) 
-                                end
-                            end
+                    end
+                end
+
+                -- 📍 PASSO 3: Voar para o local da Arena (Para renderizar o Boss)
+                local spawnFolderName = self.CurrentIslandRules.SpawnFolders and self.CurrentIslandRules.SpawnFolders[self.SelectedSummonBoss]
+                local targetPos = nil
+                if spawnFolderName then
+                    local spawnZone = Workspace:FindFirstChild(spawnFolderName)
+                    if spawnZone then
+                        targetPos = spawnZone:IsA("BasePart") and spawnZone.Position or (spawnZone:IsA("Model") and spawnZone.PrimaryPart and spawnZone.PrimaryPart.Position)
+                        if not targetPos then
+                            local p = spawnZone:FindFirstChildWhichIsA("BasePart", true)
+                            if p then targetPos = p.Position end
                         end
                     end
+                end
+
+                targetPos = targetPos or npcPos
+
+                if targetPos and (hrp.Position - targetPos).Magnitude > 50 then
+                    TeleportService:FlyTo(targetPos + Vector3.new(0, 30, 0))
+                    task.wait(0.5)
                 end
             end
         end
