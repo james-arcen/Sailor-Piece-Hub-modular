@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🍀 MÓDULO: AUTO PITY (ESPERA INTELIGENTE E ANTI-VOO REDUNDANTE)
+-- 🍀 MÓDULO: AUTO PITY (FLUXO ESTRITO E RENDERIZAÇÃO FORÇADA)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -317,13 +317,6 @@ function Module:StartFarm()
                     continue
                 end
 
-                if targetData.Type == "Summon" then
-                    if targetData.AutoRemote and not self.LastSummonState then
-                        self:FirePityRemote(targetData.AutoRemote)
-                        self.LastSummonState = true
-                    end
-                end
-
                 if not self.TargetBossModel or not self.TargetBossModel:FindFirstChild("Humanoid") or self.TargetBossModel.Humanoid.Health <= 0 then
                     self.TargetBossModel = self:GetBossModel(targetData.Target)
                 end
@@ -334,55 +327,65 @@ function Module:StartFarm()
                 else
                     CombatService:SetTarget(nil, false)
                     self.TargetBossModel = nil
-                    self.Patience = self.Patience + 1
-                    
-                    if targetData.Type == "Summon" and self.Patience >= 5 then
-                        
-                        if self.LastSummonState and targetData.AutoRemote then
-                            self.Patience = 0
-                            local spawnFolderName = targetData.SpawnFolders and targetData.SpawnFolders[targetData.Target]
-                            if spawnFolderName then
-                                local spawnZone = Workspace:FindFirstChild(spawnFolderName)
-                                if spawnZone then
-                                    local targetPos = spawnZone:IsA("BasePart") and spawnZone.Position or (spawnZone:IsA("Model") and spawnZone.PrimaryPart and spawnZone.PrimaryPart.Position)
-                                    if not targetPos then
-                                        local p = spawnZone:FindFirstChildWhichIsA("BasePart", true)
-                                        if p then targetPos = p.Position end
-                                    end
-                                    if targetPos and (hrp.Position - targetPos).Magnitude > 30 then
-                                        TeleportService:FlyTo(targetPos + Vector3.new(0, 30, 0))
-                                    end
+
+                    if targetData.Type == "Summon" then
+                        -- 📍 PASSO 1: Encontrar Posição do NPC
+                        local npcPos = targetData.SummonPosition
+                        if not npcPos and targetData.SummonNPC then
+                            local svcFolder = Workspace:FindFirstChild("ServiceNPCs")
+                            local npcModel = svcFolder and svcFolder:FindFirstChild(targetData.SummonNPC)
+                            if npcModel and npcModel:FindFirstChild("HumanoidRootPart") then
+                                npcPos = npcModel.HumanoidRootPart.Position
+                            end
+                        end
+
+                        -- 📍 PASSO 2: Validar e Invocar
+                        local needsToSummon = false
+                        if targetData.AutoRemote and not self.LastSummonState then
+                            needsToSummon = true
+                        elseif not targetData.AutoRemote then
+                            self.Patience = self.Patience + 1
+                            if self.Patience >= 4 then
+                                needsToSummon = true
+                                self.Patience = 0
+                            end
+                        end
+
+                        if needsToSummon then
+                            if npcPos and (hrp.Position - npcPos).Magnitude > 50 then
+                                TeleportService:FlyTo(npcPos)
+                                task.wait(0.5)
+                                continue
+                            else
+                                if targetData.AutoRemote and not self.LastSummonState then
+                                    self:FirePityRemote(targetData.AutoRemote)
+                                    self.LastSummonState = true
+                                else
+                                    self:FirePityRemote(targetData.SummonRemote)
+                                end
+                                RandomService:Wait(1.0, 2.0)
+                            end
+                        end
+
+                        -- 📍 PASSO 3: Ir pro local do Boss renderizar
+                        local spawnFolderName = targetData.SpawnFolders and targetData.SpawnFolders[targetData.Target]
+                        local targetPos = nil
+                        if spawnFolderName then
+                            local spawnZone = Workspace:FindFirstChild(spawnFolderName)
+                            if spawnZone then
+                                targetPos = spawnZone:IsA("BasePart") and spawnZone.Position or (spawnZone:IsA("Model") and spawnZone.PrimaryPart and spawnZone.PrimaryPart.Position)
+                                if not targetPos then
+                                    local p = spawnZone:FindFirstChildWhichIsA("BasePart", true)
+                                    if p then targetPos = p.Position end
                                 end
                             end
-                        else
-                            if targetData.SummonPosition then
-                                if (hrp.Position - targetData.SummonPosition).Magnitude > 20 then
-                                    TeleportService:FlyTo(targetData.SummonPosition)
-                                    task.wait(1.5)
-                                end
-                            elseif targetData.SummonNPC then
-                                TeleportService:FlyToNPC(targetData.SummonNPC)
-                                task.wait(1.5)
-                            end
-                            
-                            if targetData.SummonRemote then self:FirePityRemote(targetData.SummonRemote) end
-                            self.Patience = 0
-                            RandomService:Wait(1.0, 2.0)
-                            
-                            local spawnFolderName = targetData.SpawnFolders and targetData.SpawnFolders[targetData.Target]
-                            if spawnFolderName then
-                                local spawnZone = Workspace:FindFirstChild(spawnFolderName)
-                                if spawnZone then
-                                    local targetPos = spawnZone:IsA("BasePart") and spawnZone.Position or (spawnZone:IsA("Model") and spawnZone.PrimaryPart and spawnZone.PrimaryPart.Position)
-                                    if not targetPos then
-                                        local p = spawnZone:FindFirstChildWhichIsA("BasePart", true)
-                                        if p then targetPos = p.Position end
-                                    end
-                                    if targetPos and (hrp.Position - targetPos).Magnitude > 30 then 
-                                        TeleportService:FlyTo(targetPos + Vector3.new(0, 30, 0)) 
-                                    end
-                                end
-                            end
+                        end
+
+                        targetPos = targetPos or npcPos
+
+                        if targetPos and (hrp.Position - targetPos).Magnitude > 50 then
+                            TeleportService:FlyTo(targetPos + Vector3.new(0, 30, 0))
+                            task.wait(0.5)
                         end
                     else
                         RandomService:Wait(1.0, 1.5)
