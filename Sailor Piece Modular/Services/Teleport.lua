@@ -30,7 +30,9 @@ function Module:FlyTo(targetPos)
 
     if hrp and hum then
         local distance = (hrp.Position - targetPos).Magnitude
-        local tempo = math.max(0.1, distance / 200)
+        
+        -- 🔥 CORREÇÃO: Lê a velocidade do GameData corretamente! Se não achar, usa 200.
+        local speed = (GameData.Settings and GameData.Settings.SlideSpeed) or 200
         local tempo = math.max(0.1, distance / speed)
 
         hum.PlatformStand = true
