@@ -257,6 +257,16 @@ GameData.SilentBosses = {
 -- ========================================================================
 -- 🗣️ TRADUTOR DO SNIPER DE CHAT (Target -> Nome no Chat)
 -- ========================================================================
+GameData.BossChatNames = {
+    ["JinwooBoss"] = "Solo Hunter",
+    ["AlucardBoss"] = "Vampire King",
+    ["YujiBoss"] = "Cursed Vessel",
+    ["SukunaBoss"] = "Cursed King",
+    ["GojoBoss"] = "Limitless Sorcerer",
+    ["AizenBoss"] = "Manipulator",
+    ["YamatoBoss"] = "Yamato"
+}
+
 GameData.SummonBosses = {
     ["Boss Island"] = {
         SummonRemote = "RequestSummonBoss",
