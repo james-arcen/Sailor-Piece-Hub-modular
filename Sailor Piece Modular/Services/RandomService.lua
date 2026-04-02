@@ -1,14 +1,12 @@
 -- ========================================================================
--- 🎲 SERVIÇO: RANDOM SERVICE (SISTEMA DE HUMANIZAÇÃO ANTI-CHEAT)
+-- ⏱️ SERVIÇO: DELAY SERVICE (ANTIGO RANDOM SERVICE) - TEMPO FIXO GLOBAL
 -- ========================================================================
+local GameData = Import("Config/GameData")
+
 local RandomService = {}
 
 function RandomService:GetTime(min, max)
-    if not max then 
-        max = min 
-        min = 0 
-    end
-    return min + (math.random() * (max - min))
+    return GameData.Settings.ActionDelay or 1.0
 end
 
 function RandomService:Wait(min, max)
