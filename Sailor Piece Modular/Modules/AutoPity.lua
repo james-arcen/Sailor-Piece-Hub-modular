@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🍀 MÓDULO: AUTO PITY (FLUXO ESTRITO E RENDERIZAÇÃO FORÇADA)
+-- 🍀 MÓDULO: AUTO PITY (COM VISÃO DE RAIOS-X PARA PASTAS DE SPAWN)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -99,14 +99,15 @@ function Module:GetBossModel(targetName)
     local closest, minDist = nil, math.huge
     local hrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
     if not hrp then return nil end
-    local cleanTarget = targetName:lower():gsub("%s+", "")
+    
+    local cleanTarget = targetName:gsub("[%d%s_]+", ""):lower()
 
     local function CheckNPC(npc)
         if npc:IsA("Model") then
             local hum = npc:FindFirstChild("Humanoid")
             local npcBase = npc:FindFirstChild("HumanoidRootPart")
             if hum and hum.Health > 0 and npcBase then
-                local cleanNpcName = npc.Name:gsub("%d+", ""):lower():gsub("%s+", "")
+                local cleanNpcName = npc.Name:gsub("[%d%s_]+", ""):lower()
                 if cleanNpcName == cleanTarget or cleanNpcName:find(cleanTarget) then
                     local dist = (hrp.Position - npcBase.Position).Magnitude
                     if dist < minDist then minDist = dist; closest = npc end
@@ -116,10 +117,9 @@ function Module:GetBossModel(targetName)
     end
 
     for _, folder in ipairs(Workspace:GetChildren()) do
-        if folder.Name:find("BossSpawn_") or folder.Name:lower():find(cleanTarget) then
-            CheckNPC(folder)
-        end
-        if folder.Name == "NPCs" or folder.Name:find("TimedBoss") then
+        CheckNPC(folder) 
+        
+        if folder.Name:find("BossSpawn_") or folder.Name:lower():find(cleanTarget) or folder.Name == "NPCs" or folder.Name:find("TimedBoss") then
             for _, npc in ipairs(folder:GetDescendants()) do
                 CheckNPC(npc)
             end
@@ -329,7 +329,6 @@ function Module:StartFarm()
                     self.TargetBossModel = nil
 
                     if targetData.Type == "Summon" then
-                        -- 📍 PASSO 1: Encontrar Posição do NPC
                         local npcPos = targetData.SummonPosition
                         if not npcPos and targetData.SummonNPC then
                             local svcFolder = Workspace:FindFirstChild("ServiceNPCs")
@@ -339,7 +338,6 @@ function Module:StartFarm()
                             end
                         end
 
-                        -- 📍 PASSO 2: Validar e Invocar
                         local needsToSummon = false
                         if targetData.AutoRemote and not self.LastSummonState then
                             needsToSummon = true
@@ -367,7 +365,6 @@ function Module:StartFarm()
                             end
                         end
 
-                        -- 📍 PASSO 3: Ir pro local do Boss renderizar
                         local spawnFolderName = targetData.SpawnFolders and targetData.SpawnFolders[targetData.Target]
                         local targetPos = nil
                         if spawnFolderName then
