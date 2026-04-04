@@ -185,8 +185,8 @@ GameData.QuestProgression = {
     { Island = "Academy", Quest = "Quest 15: Mobs (Teacher)", MinLevel = 10000 }, 
     { Island = "Judgement", Quest = "Quest 16: Mobs", MinLevel = 10750 },
     { Island = "Soul Dominion", Quest = "Quest 17: Mobs", MinLevel = 11500 },
-    { Island = "Ninja", Quest = "Quest 18: Mobs", MinLevel = 12500 }, 
-    { Island = "Lawless", Quest = "Quest 19: Mobs", MinLevel = 13500 }
+    { Island = "Ninja", Quest = "Quest 18: Mobs", MinLevel = 12000 }, 
+    { Island = "Lawless", Quest = "Quest 19: Mobs", MinLevel = 13000 }
 }
 
 GameData.TimedBosses = {
