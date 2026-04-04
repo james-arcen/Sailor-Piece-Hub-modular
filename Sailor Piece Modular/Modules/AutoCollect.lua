@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🧩 MÓDULO: AUTO COLLECT (MOTOR UNIVERSAL DE ROTAS)
+-- 🧩 MÓDULO: AUTO COLLECT (MOTOR UNIVERSAL DE ROTAS + SCAN DE PROXIMIDADE)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -44,13 +44,35 @@ function Module:GetCurrentIsland(hrp)
 end
 
 function Module:GetItemModel(targetName)
-    -- Procura o item dinamicamente no Workspace inteiro
+    local closest, minDist = nil, math.huge
+    local hrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return nil end
+
     for _, obj in ipairs(Workspace:GetDescendants()) do
         if obj.Name == targetName and (obj:IsA("Model") or obj:IsA("BasePart")) then
-            return obj
+            
+            local itemPos = nil
+            if obj:IsA("BasePart") then
+                itemPos = obj.Position
+            elseif obj:IsA("Model") and obj.PrimaryPart then
+                itemPos = obj.PrimaryPart.Position
+            else
+                local p = obj:FindFirstChildWhichIsA("BasePart", true)
+                if p then itemPos = p.Position end
+            end
+            
+            if itemPos then
+                local dist = (hrp.Position - itemPos).Magnitude
+                if dist < minDist then
+                    minDist = dist
+                    closest = obj
+                end
+            end
+            
         end
     end
-    return nil
+    
+    return closest
 end
 
 local function CreateDynamicDropdown(container, defaultText, options, callback)
@@ -136,7 +158,7 @@ function Module:Start()
 
     CreateDynamicDropdown(container, "📍 Rota: " .. self.SelectedItem, self.CollectiblesList, function(item)
         self.SelectedItem = item
-        self.CurrentStep = 1 -- Reseta a rota ao trocar de item
+        self.CurrentStep = 1
         self.ProgressLabel.Text = "Rota alterada! Status: Aguardando..."
     end)
 
@@ -154,7 +176,7 @@ function Module:StartFarm()
     if self.IsRunning then return end
     self.IsRunning = true
     self.CurrentItemObj = nil
-    CombatService:SetTarget(nil, false) -- Desliga os ataques
+    CombatService:SetTarget(nil, false)
     PriorityService:Request("AutoCollect")
 
     if self.BrainLoop then task.cancel(self.BrainLoop); self.BrainLoop = nil end
@@ -171,7 +193,6 @@ function Module:StartFarm()
             local config = GameData.Collectibles[self.SelectedItem]
             if not config then continue end
             
-            -- Verifica se a rota já acabou
             if self.CurrentStep > #config.IslandOrder then
                 self.ProgressLabel.Text = "🎉 ROTA CONCLUÍDA! Desligue o Auto Collect."
                 task.wait(2)
@@ -181,16 +202,14 @@ function Module:StartFarm()
             local targetIsland = config.IslandOrder[self.CurrentStep]
             self.ProgressLabel.Text = "Progresso: " .. self.CurrentStep .. "/" .. #config.IslandOrder .. " (Ilha: " .. targetIsland .. ")"
             
-            -- Lógica de Viagem (Ordem Estrita)
             local currentIsland = self:GetCurrentIsland(hrp)
             if currentIsland ~= targetIsland then
                 TeleportService:TeleportToIsland(targetIsland)
                 self.CurrentItemObj = nil
-                RandomService:Wait(3.0, 4.0) -- Tempo pro mapa renderizar
+                RandomService:Wait(3.0, 4.0)
                 continue
             end
             
-            -- Procura o item dinamicamente na ilha
             if not self.CurrentItemObj or not self.CurrentItemObj.Parent then
                 self.CurrentItemObj = self:GetItemModel(config.TargetName)
             end
@@ -208,18 +227,15 @@ function Module:StartFarm()
                     local dist = (hrp.Position - itemPos).Magnitude
                     
                     if dist > 15 then
-                        -- Desliza usando o sistema global de movimento
                         TeleportService:FlyTo(itemPos + Vector3.new(0, 3, 0))
                         task.wait(0.5)
                     else
-                        -- Interage com a peça (ProximityPrompt)
                         local prompt = self.CurrentItemObj:FindFirstChildWhichIsA("ProximityPrompt", true)
                         if prompt and fireproximityprompt then
                             hrp.Velocity = Vector3.zero
                             pcall(function() fireproximityprompt(prompt) end)
                             RandomService:Wait(1.5, 2.0)
                             
-                            -- Vai para a próxima ilha da lista!
                             self.CurrentStep = self.CurrentStep + 1
                             self.CurrentItemObj = nil
                         else
