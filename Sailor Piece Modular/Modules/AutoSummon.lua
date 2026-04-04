@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🔮 MÓDULO: AUTO SUMMON BOSS (LEITURA EXATA DE NOME + DIFICULDADE)
+-- 🔮 MÓDULO: AUTO SUMMON BOSS (DIFICULDADE DINÂMICA POR BOSS)
 -- ========================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -16,6 +16,16 @@ local RandomService = Import("Services/RandomService")
 
 local Module = { NoToggle = true }
 
+local function CheckIfRequiresDifficulty(rules, bossName)
+    if type(rules.RequiresDifficulty) == "boolean" then return rules.RequiresDifficulty end
+    if type(rules.RequiresDifficulty) == "table" then
+        for _, b in ipairs(rules.RequiresDifficulty) do
+            if b == bossName then return true end
+        end
+    end
+    return false
+end
+
 function Module:Init()
     self.IsRunning = false
     self.TargetBossModel = nil
@@ -28,7 +38,10 @@ function Module:Init()
     self.SelectedIsland = self.IslandsWithSummon[1] or "Boss Island"
     self.CurrentIslandRules = self.SummonData[self.SelectedIsland] or {Bosses = {"Nenhum"}, Difficulties = {"Padrão"}}
     self.SelectedSummonBoss = self.CurrentIslandRules.Bosses[1]
-    self.SelectedDifficulty = self.CurrentIslandRules.Difficulties[1]
+    
+    local reqDiff = CheckIfRequiresDifficulty(self.CurrentIslandRules, self.SelectedSummonBoss)
+    local diffs = reqDiff and self.CurrentIslandRules.Difficulties or {"Padrão"}
+    self.SelectedDifficulty = diffs[1]
     
     self.LastSummonState = false
     self.RemotesFolder = ReplicatedStorage:WaitForChild("Remotes", 5)
@@ -49,7 +62,6 @@ function Module:GetCurrentIsland(hrp)
     return closestIsland
 end
 
--- 🔥 AGORA O GETBOSSMODEL RECEBE A DIFICULDADE COMO PARÂMETRO!
 function Module:GetBossModel(targetName, difficulty)
     local closest, minDist = nil, math.huge
     local hrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
@@ -60,7 +72,7 @@ function Module:GetBossModel(targetName, difficulty)
     
     if cleanTarget == "strongesttoday" then cleanTarget = "strongestoftoday" end
     if cleanTarget == "strongesthistory" then cleanTarget = "strongestinhistory" end
-    
+
     local function CheckNPC(npc)
         if npc:IsA("Model") then
             local hum = npc:FindFirstChild("Humanoid")
@@ -68,12 +80,10 @@ function Module:GetBossModel(targetName, difficulty)
             if hum and hum.Health > 0 and npcBase then
                 local cleanNpcName = npc.Name:gsub("[%d%s_]+", ""):lower()
                 
-                -- Verifica se o nome base do Boss bate
                 if cleanNpcName:find(cleanTarget) then
-                    -- Se a ilha tiver dificuldade, exige que a dificuldade esteja no nome do modelo
                     if cleanDiff ~= "" and cleanDiff ~= "padrão" then
                         if not cleanNpcName:find(cleanDiff) then
-                            return -- Ignora se for a dificuldade errada!
+                            return
                         end
                     end
                     
@@ -173,17 +183,26 @@ function Module:Start()
         self.SelectedIsland = island
         self.CurrentIslandRules = self.SummonData[island]
         self.SelectedSummonBoss = self.CurrentIslandRules.Bosses[1]
-        self.SelectedDifficulty = self.CurrentIslandRules.Difficulties[1]
+        
+        local reqDiff = CheckIfRequiresDifficulty(self.CurrentIslandRules, self.SelectedSummonBoss)
+        local diffs = reqDiff and self.CurrentIslandRules.Difficulties or {"Padrão"}
+        self.SelectedDifficulty = diffs[1]
         
         if bossDropdown then bossDropdown.Refresh(self.CurrentIslandRules.Bosses, "📍 Boss: " .. self.SelectedSummonBoss) end
-        if diffDropdown then diffDropdown.Refresh(self.CurrentIslandRules.Difficulties, "🔥 Dif: " .. self.SelectedDifficulty) end
+        if diffDropdown then diffDropdown.Refresh(diffs, "🔥 Dif: " .. self.SelectedDifficulty) end
     end)
 
     bossDropdown = CreateDynamicDropdown(container, "📍 Boss: " .. self.SelectedSummonBoss, self.CurrentIslandRules.Bosses, function(boss)
         self.SelectedSummonBoss = boss
+        
+        local reqDiff = CheckIfRequiresDifficulty(self.CurrentIslandRules, boss)
+        local diffs = reqDiff and self.CurrentIslandRules.Difficulties or {"Padrão"}
+        self.SelectedDifficulty = diffs[1]
+        
+        if diffDropdown then diffDropdown.Refresh(diffs, "🔥 Dif: " .. self.SelectedDifficulty) end
     end)
     
-    diffDropdown = CreateDynamicDropdown(container, "🔥 Dif: " .. self.SelectedDifficulty, self.CurrentIslandRules.Difficulties, function(diff)
+    diffDropdown = CreateDynamicDropdown(container, "🔥 Dif: " .. self.SelectedDifficulty, {"Padrão"}, function(diff)
         self.SelectedDifficulty = diff
     end)
 
@@ -194,7 +213,7 @@ function Module:FireRemote(remoteName)
     if not self.RemotesFolder then return end
     local remote = self.RemotesFolder:FindFirstChild(remoteName)
     if remote then
-        if self.CurrentIslandRules.RequiresDifficulty then
+        if CheckIfRequiresDifficulty(self.CurrentIslandRules, self.SelectedSummonBoss) then
             pcall(function() remote:FireServer(self.SelectedSummonBoss, self.SelectedDifficulty) end)
         else
             pcall(function() remote:FireServer(self.SelectedSummonBoss) end)
@@ -244,7 +263,6 @@ function Module:StartFarm()
                 continue
             end
             
-            -- 🔥 Passando a Dificuldade para o Buscador!
             if not self.TargetBossModel or not self.TargetBossModel:FindFirstChild("Humanoid") or self.TargetBossModel.Humanoid.Health <= 0 then
                 self.TargetBossModel = self:GetBossModel(self.SelectedSummonBoss, self.SelectedDifficulty)
             end
