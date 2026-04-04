@@ -48,7 +48,7 @@ end
 -- ==========================================
 local AutoQuestModule = Import("Modules/AutoQuest")
 Core:RegisterModule("Auto Quest (Unitária)", "Missões", AutoQuestModule)
-task.wait(0.3)
+task.wait(0.5)
 
 local TeleportModule = Import("Services/Teleport")
 Core:RegisterModule("Mundo & Teleporte", "Mundo & Teleporte", TeleportModule)
@@ -56,19 +56,23 @@ task.wait(0.5)
 
 local AutoFarmModule = Import("Modules/AutoFarm")
 Core:RegisterModule("Auto Farm (Qualquer Mob)", "Farm & Nível", AutoFarmModule)
-task.wait(0.7)
+task.wait(0.5)
 
 local AutoBossModule = Import("Modules/AutoBoss")
 Core:RegisterModule("Auto Boss", "Chefes (Boss)", AutoBossModule)
-task.wait(0.9)
+task.wait(0.5)
 
 local AutoSummonModule = Import("Modules/AutoSummon")
 Core:RegisterModule("Auto Summon Boss", "Chefes (Boss)", AutoSummonModule)
-task.wait(1.1)
+task.wait(0.5)
 
 local AutoPityModule = Import("Modules/AutoPity")
 Core:RegisterModule("Auto Pity (Garantido)", "Gacha & Itens", AutoPityModule)
-task.wait(1.3)
+task.wait(0.5)
+
+local AutoCollectModule = Import("Modules/AutoCollect")
+Core:RegisterModule("Motor de Coleta", "Coletáveis", AutoCollectModule)
+task.wait(0.5)
 
 function Core:Init()
     self.UI:Init(Config)
