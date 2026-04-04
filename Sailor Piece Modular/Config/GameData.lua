@@ -291,6 +291,26 @@ GameData.SummonBosses = {
     }
 }
 
+-- ========================================================================
+-- 🧩 COLETÁVEIS E ITENS DO MAPA (MOTOR DE ROTAS ESCALÁVEL)
+-- ========================================================================
+GameData.Collectibles = {
+    ["Peça de Slime (Puzzle)"] = {
+        TargetName = "SlimePuzzlePiece",
+        IslandOrder = {
+            "Desert",
+            "Snow",
+            "Starter",
+            "Jungle",
+            "Shibuya Station",
+            "Hollow Island",
+            "Shinjuku"
+        }
+    }
+    -- 💡 Para adicionar novos itens no futuro, basta duplicar o bloco acima
+    -- e mudar o TargetName e a IslandOrder! O Hub fará o resto.
+}
+
 GameData.Settings = {
     SlideSpeed = 200,
     ActionDelay = 1.0
