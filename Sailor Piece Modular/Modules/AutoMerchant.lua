@@ -140,6 +140,23 @@ function Module:Start()
         end
     end)
 
+    -- 🔥 NOVO BOTÃO: Adicionar todos os itens disponíveis de uma vez
+    UI:CreateButton(tabName, "➕ Adicionar Todos à Lista", function()
+        for _, item in ipairs(self.Items) do
+            local found = false
+            for _, existing in ipairs(self.SelectedToBuy) do
+                if existing == item then
+                    found = true
+                    break
+                end
+            end
+            if not found then
+                table.insert(self.SelectedToBuy, item)
+            end
+        end
+        self:UpdateLabel()
+    end)
+
     UI:CreateButton(tabName, "➖ Remover da Lista", function()
         for i, w in ipairs(self.SelectedToBuy) do
             if w == self.SelectedItem then
@@ -192,7 +209,7 @@ function Module:StartFarm()
                             purchaseRemote:InvokeServer(itemName, 999)
                         end)
                         
-                        task.wait(0.5)
+                        task.wait(0.5) 
                     end
                 end
                 
