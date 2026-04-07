@@ -48,35 +48,39 @@ end
 -- ==========================================
 local AutoQuestModule = Import("Modules/AutoQuest")
 Core:RegisterModule("Auto Quest (Unitária)", "Missões", AutoQuestModule)
-task.wait(0.5)
+task.wait(0.3)
 
 local TeleportModule = Import("Services/Teleport")
 Core:RegisterModule("Mundo & Teleporte", "Mundo & Teleporte", TeleportModule)
-task.wait(0.5)
+task.wait(0.3)
 
 local AutoFarmModule = Import("Modules/AutoFarm")
 Core:RegisterModule("Auto Farm (Qualquer Mob)", "Farm & Nível", AutoFarmModule)
-task.wait(0.5)
+task.wait(0.3)
 
 local AutoBossModule = Import("Modules/AutoBoss")
 Core:RegisterModule("Auto Boss", "Chefes (Boss)", AutoBossModule)
-task.wait(0.5)
+task.wait(0.3)
 
 local AutoSummonModule = Import("Modules/AutoSummon")
 Core:RegisterModule("Auto Summon Boss", "Chefes (Boss)", AutoSummonModule)
-task.wait(0.5)
+task.wait(0.3)
 
 local AutoPityModule = Import("Modules/AutoPity")
 Core:RegisterModule("Auto Pity (Garantido)", "Gacha & Itens", AutoPityModule)
-task.wait(0.5)
+task.wait(0.3)
 
 local AutoCollectModule = Import("Modules/AutoCollect")
 Core:RegisterModule("Motor de Coleta", "Coletáveis", AutoCollectModule)
-task.wait(0.5)
+task.wait(0.3)
 
 local AutoMerchantModule = Import("Modules/AutoMerchant")
 Core:RegisterModule("Mercador Remoto", "Gacha & Itens", AutoMerchantModule)
-task.wait(0.5)
+task.wait(0.3)
+
+local AutoRerollModule = Import("Modules/AutoReroll")
+Core:RegisterModule("Reroll de Status", "Gacha & Itens", AutoRerollModule)
+task.wait(0.3)
 
 function Core:Init()
     self.UI:Init(Config)
