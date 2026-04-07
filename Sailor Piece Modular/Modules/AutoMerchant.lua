@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🛒 MÓDULO: AUTO MERCHANT (TENTATIVA POR TEMPO / 5 MINUTOS)
+-- 🛒 MÓDULO: AUTO MERCHANT (SESSÃO HACK + TENTATIVA POR TEMPO)
 -- ========================================================================
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -29,7 +29,6 @@ function Module:Init()
 end
 
 function Module:UpdateLabel()
-    -- 🔥 SEGURANÇA: Só atualiza se a label existir e estiver na tela (evita erros ao usar o botão Voltar)
     if not self.ActiveLabel or not self.ActiveLabel.Parent then return end
     
     if #self.SelectedToBuy == 0 then
@@ -40,7 +39,6 @@ function Module:UpdateLabel()
 end
 
 function Module:UpdateStatus(text)
-    -- 🔥 SEGURANÇA: Só atualiza o status visual se o menu do Merchant estiver aberto
     if self.StatusLabel and self.StatusLabel.Parent then
         self.StatusLabel.Text = text
     end
@@ -152,14 +150,9 @@ function Module:BuildUI()
         for _, item in ipairs(self.Items) do
             local found = false
             for _, existing in ipairs(self.SelectedToBuy) do
-                if existing == item then
-                    found = true
-                    break
-                end
+                if existing == item then found = true; break end
             end
-            if not found then
-                table.insert(self.SelectedToBuy, item)
-            end
+            if not found then table.insert(self.SelectedToBuy, item) end
         end
         self:UpdateLabel()
     end)
@@ -193,12 +186,29 @@ function Module:StartFarm()
     if self.BrainLoop then task.cancel(self.BrainLoop); self.BrainLoop = nil end
 
     self.BrainLoop = task.spawn(function()
+        
+        self:UpdateStatus("Status: Inicializando Sessão (Piscando Loja)...")
+        
+        -- 🔥 O TRUQUE: Busca a UI do Mercador, liga por meio segundo e desliga
+        local pg = LP:FindFirstChild("PlayerGui")
+        if pg then
+            for _, obj in ipairs(pg:GetDescendants()) do
+                if (obj:IsA("Frame") or obj:IsA("ScreenGui")) and obj.Name:lower():find("merchant") then
+                    pcall(function()
+                        if obj:IsA("ScreenGui") then obj.Enabled = true else obj.Visible = true end
+                        task.wait(0.5)
+                        if obj:IsA("ScreenGui") then obj.Enabled = false else obj.Visible = false end
+                    end)
+                    break
+                end
+            end
+        end
+        
+        task.wait(1)
+
         local merchantRemotes = ReplicatedStorage:FindFirstChild("Remotes") 
                              and ReplicatedStorage.Remotes:FindFirstChild("MerchantRemotes")
-                             
         local purchaseRemote = merchantRemotes and merchantRemotes:FindFirstChild("PurchaseMerchantItem")
-            
-        local stockRemote = merchantRemotes and merchantRemotes:FindFirstChild("GetMerchantStock")
         
         local countdown = 0
 
@@ -210,14 +220,7 @@ function Module:StartFarm()
             end
 
             if countdown <= 0 then
-                self:UpdateStatus("Status: Abrindo loja silenciosamente...")
-                
-                if stockRemote and stockRemote:IsA("RemoteFunction") then
-                    pcall(function() stockRemote:InvokeServer() end)
-                    task.wait(1)
-                end
-                
-                self:UpdateStatus("Status: Efetuando compras da lista...")
+                self:UpdateStatus("Status: Comprando itens silenciosamente...")
                 
                 if purchaseRemote and purchaseRemote:IsA("RemoteFunction") then
                     for _, itemName in ipairs(self.SelectedToBuy) do
@@ -231,7 +234,7 @@ function Module:StartFarm()
                     end
                 end
                 
-                countdown = 300
+                countdown = 300 -- 5 Minutos
             else
                 self:UpdateStatus("Status: Próxima tentativa em " .. countdown .. "s")
                 countdown = countdown - 1
