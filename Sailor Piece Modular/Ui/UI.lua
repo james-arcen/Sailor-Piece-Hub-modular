@@ -156,8 +156,11 @@ function UI:CreateTab(name)
     layout.Padding = UDim.new(0, 5)
     layout.Parent = tabContainer
 
-    self.Tabs[name] = { Button = tabBtn, Container = tabContainer }
+    layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        tabContainer.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
+    end)
 
+    self.Tabs[name] = { Button = tabBtn, Container = tabContainer }
     tabBtn.MouseButton1Click:Connect(function() self:SelectTab(name) end)
     if not self.ActiveTab then self:SelectTab(name) end
 
