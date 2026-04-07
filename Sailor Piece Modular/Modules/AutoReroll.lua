@@ -1,5 +1,5 @@
 -- ========================================================================
--- 🎲 MÓDULO: AUTO REROLL STATS (INTERAÇÃO COM MENU NATIVO E SUB-MENU)
+-- 🎲 MÓDULO: AUTO REROLL STATS (INTERAÇÃO COM MENU NATIVO FOCADA)
 -- ========================================================================
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -96,18 +96,6 @@ local function CreateDynamicDropdown(container, defaultText, options, callback)
     return { Refresh = function(newOptions, resetText) defaultText = resetText; mainBtn.Text = defaultText .. " ▼"; populate(newOptions) end }
 end
 
--- 🔥 Função auxiliar para desesconder toda a árvore da UI nativa
-local function UnhideAll(guiElement)
-    pcall(function()
-        if guiElement:IsA("Frame") or guiElement:IsA("ScrollingFrame") or guiElement:IsA("ImageLabel") then
-            guiElement.Visible = true
-        end
-    end)
-    for _, child in ipairs(guiElement:GetChildren()) do
-        UnhideAll(child)
-    end
-end
-
 function Module:BuildUI()
     local tabName = "Gacha & Itens"
     UI:CreateSection(tabName, "🎲 Auto Reroll de Status")
@@ -117,23 +105,28 @@ function Module:BuildUI()
         task.spawn(function()
             local remote = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("GetStatRerollData")
             
-            -- 1️⃣ Pede os dados oficiais da roleta ao Servidor
             if remote and remote:IsA("RemoteFunction") then
                 pcall(function() remote:InvokeServer() end)
             end
             
             task.wait(0.5)
             
-            -- 2️⃣ Hack Visual: Força a interface escondida do jogo a pular na tela!
+            -- 🔥 HACK DIRECIONADO: Busca *apenas* painéis com nome "reroll"
             local pg = LP:FindFirstChild("PlayerGui")
             if pg then
-                for _, gui in ipairs(pg:GetChildren()) do
-                    if gui:IsA("ScreenGui") then
-                        local name = gui.Name:lower()
-                        if name:find("reroll") or name:find("stat") then
-                            gui.Enabled = true
-                            UnhideAll(gui) -- Ativa a função recursiva para não perder nenhuma janela
-                        end
+                for _, obj in ipairs(pg:GetDescendants()) do
+                    if (obj:IsA("Frame") or obj:IsA("ScreenGui")) and obj.Name:lower():find("reroll") then
+                        pcall(function()
+                            if obj:IsA("ScreenGui") then obj.Enabled = true else obj.Visible = true end
+                            
+                            -- Garante que os pais dessa janela também fiquem visíveis para não ficar oculto
+                            local p = obj.Parent
+                            while p and p ~= pg do
+                                if p:IsA("ScreenGui") then p.Enabled = true
+                                elseif p:IsA("Frame") then p.Visible = true end
+                                p = p.Parent
+                            end
+                        end)
                     end
                 end
             end
@@ -165,16 +158,10 @@ function Module:Toggle(state)
     local rollRemote = remoteEvents:FindFirstChild("StatRerollAutoRoll")
 
     if state then
-        if skipRemote then
-            pcall(function() skipRemote:FireServer(self.SkipConfig) end)
-        end
-        if rollRemote then
-            pcall(function() rollRemote:FireServer(true, "selected", {self.SelectedStat}) end)
-        end
+        if skipRemote then pcall(function() skipRemote:FireServer(self.SkipConfig) end) end
+        if rollRemote then pcall(function() rollRemote:FireServer(true, "selected", {self.SelectedStat}) end) end
     else
-        if rollRemote then
-            pcall(function() rollRemote:FireServer(false, "selected", {self.SelectedStat}) end)
-        end
+        if rollRemote then pcall(function() rollRemote:FireServer(false, "selected", {self.SelectedStat}) end) end
     end
 end
 
