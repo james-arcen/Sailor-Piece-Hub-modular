@@ -218,7 +218,7 @@ local function CreateDynamicDropdown(container, defaultText, options, callback)
     return { Refresh = function(newOptions, resetText) defaultText = resetText; mainBtn.Text = defaultText .. " ▼"; populate(newOptions) end }
 end
 
-function Module:Start()
+function Module:BuildUI()
     local tabName = "Gacha & Itens"
     UI:CreateSection(tabName, "🍀 Sniper de Pity (Garantido)")
     local container = UI.Tabs[tabName].Container
@@ -280,6 +280,8 @@ function Module:Start()
         self:Toggle(state)
     end)
 end
+
+function Module:Start() end
 
 function Module:FirePityRemote(remoteName)
     if not self.SelectedPityBoss then return end
