@@ -1,4 +1,4 @@
-local REPO_URL = "https://raw.githubusercontent.com/Noob1Code/Sailor-Piece-Hub-modular/main/Sailor%20Piece%20Modular/"
+local REPO_URL = "https://github.com/james-arcen/Sailor-Piece-Hub-modular/tree/main/Sailor%20Piece%20Modular"
 local moduleCache = {}
 
 pcall(function()
